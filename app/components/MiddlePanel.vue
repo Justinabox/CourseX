@@ -51,14 +51,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, nextTick, onBeforeUnmount } from 'vue'
-import { type UICourse } from '~/composables/useAPI'
-import { useCourseFilters } from '~/composables/useCourseFilters'
-import { useCourseSelection } from '~/composables/useCourseSelection'
-import { useCourseListSource } from '~/composables/useCourseListSource'
-import { useVariableVirtualList } from '~/composables/useVariableVirtualList'
-import { useScrollMemory } from '~/composables/useScrollMemory'
-import { useRouteMode } from '~/composables/useRouteMode'
-import FilterBar from '~/components/FilterBar.vue'
+import { type UICourse } from '@/composables/useAPI'
+import { useCourseFilters } from '@/composables/useCourseFilters'
+import { useCourseSelection } from '@/composables/useCourseSelection'
+import { useCourseListSource } from '@/composables/useCourseListSource'
+import { useVariableVirtualList } from '@/composables/useVariableVirtualList'
+import { useScrollMemory } from '@/composables/useScrollMemory'
+import { useRouteMode } from '@/composables/useRouteMode'
+import FilterBar from '@/components/FilterBar.vue'
 
 const router = useRouter()
 

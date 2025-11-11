@@ -1,6 +1,4 @@
-import type { UICourseSection } from '@/composables/api/types'
-
-export type EnrollmentFilter = 'any' | 'only-full' | 'only-open'
+import type { UICourseSection, EnrollmentFilter } from '@/composables/api/types'
 
 export function sectionMatchesEnrollment(section: UICourseSection, mode: EnrollmentFilter): boolean {
   if (mode === 'any') return true

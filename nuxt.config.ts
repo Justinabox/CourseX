@@ -15,10 +15,6 @@ export default defineNuxtConfig({
   nitro: {
     // no server aliases needed
   },
-  alias: {
-    // Ensure @/stores resolves to app/stores
-    '@stores': '/Users/korgo/Desktop/Projects/CourseX/app/stores',
-  },
   vite: {
     plugins: [],
   },

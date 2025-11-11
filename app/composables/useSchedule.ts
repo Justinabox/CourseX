@@ -1,15 +1,15 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useStore } from '~/composables/useStore'
+import { useStore } from '@/composables/useStore'
 import {
   parseBlocksFromString,
   parseBlocksFromApiSpec,
   timeToMinutes,
   type ScheduleBlock,
   type DayOfWeek,
-} from '~/composables/scheduleUtils'
-import { useScheduleManualStore } from '~/stores/scheduleManual'
-import { minutesToTime } from '~/composables/useTimeParsing'
+} from '@/composables/scheduleUtils'
+import { useScheduleManualStore } from '@/stores/scheduleManual'
+import { minutesToTime } from '@/composables/useTimeParsing'
 
 export const DAY_LABELS: DayOfWeek[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 

@@ -1,32 +1,14 @@
 import { computed, reactive, watch } from 'vue'
 import type { Ref } from 'vue'
-import type { UICourse, UICourseSection } from '~/composables/useAPI'
-import { useStore } from '~/composables/useStore'
+import type { UICourse, UICourseSection } from '@/composables/useAPI'
+import type { CourseFiltersState, TriState, EnrollmentFilter } from '@/composables/api/types'
+import { useStore } from '@/composables/useStore'
 import { useTermId } from '@/composables/useTermId'
 import { parseUnitsToNumber } from '@/composables/filters/units'
 import { normalizeString, normalizeSectionType } from '@/composables/filters/normalize'
 import { courseMatchesSearch } from '@/composables/filters/search'
-import { sectionMatchesEnrollment, type EnrollmentFilter } from '@/composables/filters/enrollment'
+import { sectionMatchesEnrollment } from '@/composables/filters/enrollment'
 import { sectionMatchesScheduleFilters, sectionMatchesTriState } from '@/composables/filters/schedule'
-
-export type TriState = 'any' | 'only' | 'exclude'
-
-export type CourseFiltersState = {
-  searchText: string
-  days: number[]
-  timeStartMinutes: number | null
-  timeEndMinutes: number | null
-  unitsMin: number | null
-  unitsMax: number | null
-  courseLevelMin: number | null
-  courseLevelMax: number | null
-  dClearance: TriState
-  prerequisites: TriState
-  duplicatedCredit: TriState
-  conflicts: TriState
-  enrollment: EnrollmentFilter
-  sectionTypes: string[]
-}
 
 function extractCourseLevel(code: string | null | undefined): number | null {
   const m = (code || '').toString().match(/(\d{3})/)

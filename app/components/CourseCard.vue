@@ -115,11 +115,11 @@
 </template>
 
 <script setup lang="ts">
-import { getCourseTypeMeta } from '~/composables/useCourseTypeMeta'
-import type { UICourse, UICourseSection } from '~/composables/useAPI'
-import { useSchedule } from '~/composables/useSchedule'
-import { useStore } from '~/composables/useStore'
-import { useRMPRatings } from '~/composables/useRMPRatings'
+import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
+import type { UICourse, UICourseSection } from '@/composables/useAPI'
+import { useSchedule } from '@/composables/useSchedule'
+import { useStore } from '@/composables/useStore'
+import { useRMPRatings } from '@/composables/useRMPRatings'
 
 defineEmits(['section-click'])
 

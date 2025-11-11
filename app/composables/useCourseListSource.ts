@@ -1,9 +1,9 @@
 import { ref, computed, watchEffect } from 'vue'
 import type { Ref } from 'vue'
-import { listAllCourses, getSchoolCourses, type UICourse } from '~/composables/useAPI'
+import { listAllCourses, getSchoolCourses, type UICourse } from '@/composables/useAPI'
 import { useTermId } from '@/composables/useTermId'
-import { useStore } from '~/composables/useStore'
-import { useRouteMode, type RouteMode } from '~/composables/useRouteMode'
+import { useStore } from '@/composables/useStore'
+import { useRouteMode, type RouteMode } from '@/composables/useRouteMode'
 
 export function useCourseListSource() {
   const { scheduledCourses } = useStore()

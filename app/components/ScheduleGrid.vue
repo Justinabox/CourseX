@@ -45,8 +45,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ScheduleBlock } from '~/composables/scheduleUtils'
-import { DAY_LABELS, START_MINUTES, END_MINUTES } from '~/composables/useSchedule'
+import type { ScheduleBlock } from '@/composables/scheduleUtils'
+import { DAY_LABELS, START_MINUTES, END_MINUTES } from '@/composables/useSchedule'
 
 const props = defineProps<{ blocks: ScheduleBlock[]; previewBlocks: ScheduleBlock[]; onBlockClick?: (id: string) => void; onDayMouseDown?: (e: MouseEvent, dayIndex: number) => void }>()
 

@@ -1,6 +1,6 @@
 import { computed } from 'vue'
-import type { UICourse, UICourseSection } from '~/composables/useAPI'
-import { parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '~/composables/scheduleUtils'
+import type { UICourse, UICourseSection } from '@/composables/useAPI'
+import { parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '@/composables/scheduleUtils'
 import { useUiStore } from '@/stores/ui'
 import { useScheduleStore } from '@/stores/schedule'
 

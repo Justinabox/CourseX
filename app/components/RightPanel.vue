@@ -110,16 +110,16 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { getCourseDetails, getSectionDetails, type CourseDetails } from '~/composables/useAPI'
-import { useSchedule } from '~/composables/useSchedule'
-import type { ScheduleBlock } from '~/composables/scheduleUtils'
-import { getCourseTypeMeta } from '~/composables/useCourseTypeMeta'
-import { useStore } from '~/composables/useStore'
-import { useCourseListSource } from '~/composables/useCourseListSource'
-import { useCourseSelection } from '~/composables/useCourseSelection'
-import { useRouteMode } from '~/composables/useRouteMode'
-import ScheduleGrid from '~/components/ScheduleGrid.vue'
-import { useRMPRatings } from '~/composables/useRMPRatings'
+import { getCourseDetails, getSectionDetails, type CourseDetails } from '@/composables/useAPI'
+import { useSchedule } from '@/composables/useSchedule'
+import type { ScheduleBlock } from '@/composables/scheduleUtils'
+import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
+import { useStore } from '@/composables/useStore'
+import { useCourseListSource } from '@/composables/useCourseListSource'
+import { useCourseSelection } from '@/composables/useCourseSelection'
+import { useRouteMode } from '@/composables/useRouteMode'
+import ScheduleGrid from '@/components/ScheduleGrid.vue'
+import { useRMPRatings } from '@/composables/useRMPRatings'
 
 const { selectedCourseCode, selectedSectionId, selectCourse } = useCourseSelection()
 const router = useRouter()

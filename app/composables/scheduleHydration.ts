@@ -1,10 +1,8 @@
-import type { UICourse, UICourseSection } from '@/composables/api/types'
+import type { UICourse, UICourseSection, SchedulePair } from '@/composables/api/types'
 import { ensureIndex, ensureIndexAsync, getSectionDetailsIndexed } from '@/composables/api/indexer'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
 
-export type ScheduledPair = { code: string; sectionId: string }
-
-export async function hydrateScheduledCourses(pairs: ScheduledPair[], termId: string): Promise<Record<string, UICourse>> {
+export async function hydrateScheduledCourses(pairs: SchedulePair[], termId: string): Promise<Record<string, UICourse>> {
   await ensureIndexAsync(termId)
   const idx = ensureIndex(termId)
   const byKey: Record<string, UICourse> = {}

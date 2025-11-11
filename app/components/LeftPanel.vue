@@ -77,8 +77,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, onActivated, onDeactivated, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
-import { listSchoolAndPrograms } from '~/composables/useAPI'
-import { useStore } from '~/composables/useStore'
+import { listSchoolAndPrograms } from '@/composables/useAPI'
+import { useStore } from '@/composables/useStore'
 import { useTermId } from '@/composables/useTermId'
  
 

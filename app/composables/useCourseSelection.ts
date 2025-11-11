@@ -1,4 +1,4 @@
-import { useStore } from '~/composables/useStore'
+import { useStore } from '@/composables/useStore'
 
 export function useCourseSelection() {
   const { selectedCourseCode, selectedSectionId } = useStore()

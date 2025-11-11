@@ -57,3 +57,30 @@ export type CourseDetails = {
   dClearance: boolean
   type: string | null
 }
+
+// Shared app-level types (centralized)
+export type TriState = 'any' | 'only' | 'exclude'
+
+export type EnrollmentFilter = 'any' | 'only-full' | 'only-open'
+
+export type SchedulePair = {
+  code: string
+  sectionId: string
+}
+
+export type CourseFiltersState = {
+  searchText: string
+  days: number[]
+  timeStartMinutes: number | null
+  timeEndMinutes: number | null
+  unitsMin: number | null
+  unitsMax: number | null
+  courseLevelMin: number | null
+  courseLevelMax: number | null
+  dClearance: TriState
+  prerequisites: TriState
+  duplicatedCredit: TriState
+  conflicts: TriState
+  enrollment: EnrollmentFilter
+  sectionTypes: string[]
+}

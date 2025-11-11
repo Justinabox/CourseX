@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTermId } from '@/composables/useTermId'
-import type { UICourse, UICourseSection } from '@/composables/api/types'
+import type { UICourse, UICourseSection, SchedulePair } from '@/composables/api/types'
 import { parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '@/composables/scheduleUtils'
 import { ensureIndexAsync } from '@/composables/api/indexer'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
@@ -11,7 +11,7 @@ export const useScheduleStore = defineStore('schedule', () => {
   // Hydrated in-memory map for UI consumption: { [termId]: { [COURSE_CODE]: UICourse } }
   const byTerm = ref<Record<string, Record<string, UICourse>>>({})
   // Persisted minimal state: pairs per term [{ code, sectionId }]
-  const pairsByTerm = ref<Record<string, { code: string; sectionId: string }[]>>({})
+  const pairsByTerm = ref<Record<string, SchedulePair[]>>({})
   const { termId } = useTermId()
 
   function keyFor(term: string) { return `cx:schedule:${term}` }
@@ -81,11 +81,11 @@ export const useScheduleStore = defineStore('schedule', () => {
     byTerm.value = { ...byTerm.value, [termId.value]: next }
   }
 
-  function currentPairs(): { code: string; sectionId: string }[] {
+  function currentPairs(): SchedulePair[] {
     return pairsByTerm.value[termId.value] || []
   }
 
-  function setCurrentPairs(next: { code: string; sectionId: string }[]) {
+  function setCurrentPairs(next: SchedulePair[]) {
     pairsByTerm.value = { ...pairsByTerm.value, [termId.value]: next }
   }
 
