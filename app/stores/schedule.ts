@@ -3,8 +3,9 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useTermId } from '@/composables/useTermId'
 import type { UICourse, UICourseSection } from '@/composables/api/types'
 import { parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '@/composables/scheduleUtils'
-import { ensureIndex, ensureIndexAsync, getAggregatedCourseDetails, getSectionDetailsIndexed } from '@/composables/api/indexer'
+import { ensureIndexAsync } from '@/composables/api/indexer'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
+import { hydrateScheduledCourses } from '@/composables/scheduleHydration'
 
 export const useScheduleStore = defineStore('schedule', () => {
   // Hydrated in-memory map for UI consumption: { [termId]: { [COURSE_CODE]: UICourse } }
@@ -90,63 +91,12 @@ export const useScheduleStore = defineStore('schedule', () => {
 
   async function hydrateForCurrentTerm() {
     try {
-      await ensureIndexAsync(termId.value)
+      const pairs = currentPairs()
+      const hydrated = await hydrateScheduledCourses(pairs, termId.value)
+      setCurrentMap(hydrated)
     } catch {
-      // If index fails to build, keep map empty
       setCurrentMap({})
-      return
     }
-    const pairs = currentPairs()
-    if (!pairs || pairs.length === 0) {
-      setCurrentMap({})
-      return
-    }
-    const byCode: Record<string, UICourse> = {}
-    // De-duplicate pairs
-    const seen = new Set<string>()
-    for (const raw of pairs) {
-      const code = normalizeCourseCode((raw?.code || '').toString())
-      const sid = normalizeSectionId((raw?.sectionId || '').toString())
-      if (!code || !sid) continue
-      const key = `${code}#${sid}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      const courseDetails = getAggregatedCourseDetails(code, termId.value)
-      const sectionDetails = getSectionDetailsIndexed(code, sid, termId.value)
-      if (!courseDetails || !sectionDetails) continue
-      // Derive GE from index for parity with normal tiles
-      const idx = ensureIndex(termId.value)
-      const ge = Array.from(new Set(
-        (idx.allUICourses || [])
-          .filter((c) => normalizeCourseCode(c.code) === code)
-          .flatMap((c) => (c.ge || []))
-          .filter(Boolean)
-      ))
-      const existing = byCode[code] || {
-        title: courseDetails.title,
-        code: courseDetails.code,
-        description: courseDetails.description,
-        sections: [],
-        ge,
-      } as UICourse
-      const section: UICourseSection = {
-        sectionId: sid,
-        instructors: Array.from(new Set(sectionDetails.instructors || [])),
-        enrolled: Number(sectionDetails.enrolled || 0),
-        capacity: Number(sectionDetails.capacity || 0),
-        schedule: (sectionDetails.times || [])[0] || '',
-        location: (sectionDetails.locations || [])[0] || '',
-        hasDClearance: !!sectionDetails.dClearance,
-        hasPrerequisites: !!(sectionDetails.prerequisites && sectionDetails.prerequisites.length > 0),
-        hasDuplicatedCredit: !!(sectionDetails.duplicatedCredits && sectionDetails.duplicatedCredits.length > 0),
-        units: sectionDetails.units ?? null,
-        type: sectionDetails.type ?? null,
-      }
-      const nextGe = Array.from(new Set([...(existing.ge || []), ...ge]))
-      existing.sections = [...(existing.sections || []).filter((s) => s.sectionId !== sid), section]
-      byCode[code] = { ...existing, ge: nextGe }
-    }
-    setCurrentMap(byCode)
   }
 
   if (process.client) {
