@@ -383,6 +383,10 @@
         {
           "name": "Project Management",
           "prefix": "PJMT"
+        },
+        {
+          "name": "Applied Analtytics",
+          "prefix": "AAN"
         }
       ]
     },
@@ -617,6 +621,10 @@
         {
           "name": "Periodontics",
           "prefix": "PERI"
+        },
+        {
+          "name": "Dental Materials",
+          "prefix": "DMAT"
         }
       ]
     },
