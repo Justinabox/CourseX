@@ -43,9 +43,6 @@ import { computed } from 'vue'
 import type { CourseFiltersState } from '@/composables/api/types'
 import { useDraftInput } from '@/composables/useDraftInput'
 import { minutesToTime, parseTimeLooseToMinutes } from '@/composables/useTimeParsing'
-import UiInput from '@/components/ui/UiInput.vue'
-import UiToggle from '@/components/ui/UiToggle.vue'
-import UiButton from '@/components/ui/UiButton.vue'
 
 const props = defineProps<{ show: boolean; filters: CourseFiltersState }>()
 
