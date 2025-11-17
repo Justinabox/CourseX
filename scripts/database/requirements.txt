@@ -1,0 +1,8 @@
+httpx[http2]>=0.27.0
+pydantic>=2.6.0
+SQLAlchemy>=2.0.25
+asyncmy>=0.2.9
+tenacity>=8.2.3
+click>=8.1.7
+rich>=13.7.0
+

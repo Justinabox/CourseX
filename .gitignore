@@ -4,7 +4,9 @@
 .nuxt
 .nitro
 .cache
+.venv
 dist
+__pycache__
 
 # Node dependencies
 node_modules
