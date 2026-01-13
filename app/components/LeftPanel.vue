@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="font-serif w-full items-center pb-4 p-4">
       <h1 class="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cx-brand-start to-cx-brand-end global-shadow">CourseX</h1>
-      <span class="text-sm text-cx-text-muted">By students, for students.</span>
+      <span class="text-sm text-cx-text-muted">Less searching, more learning.</span>
     </div>
 
     <div class="p-4 pb-3 flex flex-col gap-2 border-t border-cx-border">
@@ -59,7 +59,7 @@
       </div>
       <div class="w-full h-full flex flex-col items-center justify-center">
         <span class="text-sm text-cx-text-muted">Built with ❤️ by Korgo</span>
-        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: 20251121 15:10 PST</span>
+        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: 20260112 23:05 PST</span>
       </div>
     </div>
 
