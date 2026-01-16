@@ -59,7 +59,7 @@
       </div>
       <div class="w-full h-full flex flex-col items-center justify-center">
         <span class="text-sm text-cx-text-muted">Built with ❤️ by Korgo</span>
-        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: 20260112 23:05 PST</span>
+        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: 20260116 09:20 PST</span>
       </div>
     </div>
 
