@@ -110,6 +110,10 @@ html {
   overflow: hidden;
 }
 
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
 .bg-zebra {
   background-image: repeating-linear-gradient(315deg,var(--color-cx-border)0,var(--color-cx-border)1px,transparent 0,transparent 50%);
   background-size: 10px 10px;

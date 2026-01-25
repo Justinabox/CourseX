@@ -31,7 +31,7 @@
       <div
         v-for="section in sections"
         :key="section.sectionId"
-        class="flex gap-2 w-full border-t border-cx-border border-dashed cursor-pointer hover:bg-cx-surface-800/30 py-0.5"
+        class="flex gap-2 w-full border-t border-cx-border border-dashed cursor-pointer hover:bg-cx-surface-800/30 py-2 lg:py-0.5 min-h-11"
         @mouseenter="onSectionHoverEnter(section)"
         @mouseleave="onSectionHoverLeave"
         @click="$emit('section-click', section.sectionId)"

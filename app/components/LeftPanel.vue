@@ -1,20 +1,20 @@
 <template>
-  <div class="h-full w-4/5 min-w-64 max-w-112 flex flex-col overflow-hidden">
+  <div class="h-full w-full lg:w-4/5 lg:min-w-64 lg:max-w-112 min-w-0 flex flex-col overflow-hidden">
     <!-- Header -->
-    <div class="font-serif w-full items-center pb-4 p-4">
-      <h1 class="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cx-brand-start to-cx-brand-end global-shadow">CourseX</h1>
+    <div class="font-serif w-full items-center pb-4 p-3 lg:p-4">
+      <h1 class="text-3xl lg:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cx-brand-start to-cx-brand-end global-shadow">CourseX</h1>
       <span class="text-sm text-cx-text-muted">Less searching, more learning.</span>
     </div>
 
-    <div class="p-4 pb-3 flex flex-col gap-2 border-t border-cx-border">
-      <input v-model="query" type="text" placeholder="Search Schools & Programs" class="w-full p-2 text-sm rounded-md border border-cx-border focus:outline-none focus:ring-1 focus:ring-cx-text-muted" />
+    <div class="p-3 lg:p-4 pb-3 flex flex-col gap-2 border-t border-cx-border">
+      <input v-model="query" type="text" placeholder="Search Schools & Programs" class="w-full p-2 min-h-11 text-sm rounded-md border border-cx-border focus:outline-none focus:ring-1 focus:ring-cx-text-muted" />
       <div class="w-full flex flex-col">
-        <NuxtLink :to="`/course/${termId}/all`" class="w-full rounded-md flex items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+        <NuxtLink :to="`/course/${termId}/all`" class="w-full rounded-md flex items-center gap-2 hover:bg-cx-surface-800/40 px-2 py-2 lg:py-1 rounded min-h-11">
           <Icon name="uil:list-ul" class="h-5 w-5"/>
           <span class="text-md">All Courses</span>
         </NuxtLink>
 
-        <NuxtLink :to="`/course/${termId}/scheduled`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+        <NuxtLink :to="`/course/${termId}/scheduled`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-2 py-2 lg:py-1 rounded min-h-11">
           <div class="flex gap-2 items-center shrink-0">
             <Icon name="uil:calendar" class="h-5 w-5"/>
             <span class="text-md">Scheduled Courses</span>
@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <div ref="leftScrollRef" class="w-full px-4 gap-3 flex flex-col h-full grow overflow-y-scroll overscroll-auto border-b border-cx-border hide-scrollbar-bg">
+    <div ref="leftScrollRef" class="w-full px-3 lg:px-4 gap-3 flex flex-col h-full grow overflow-y-scroll overscroll-auto border-b border-cx-border hide-scrollbar-bg">
       <!-- <h1>Schools & Programs</h1> -->
       <div class="w-full flex flex-col gap-2 h-full border-0 border-cx-border">
         <!-- Schools & Programs List -->
@@ -38,7 +38,7 @@
       <div class="flex items-center gap-2 p-1 border-r border-cx-border" ref="settingsRef">
         <!-- Settings menu -->
         <div class="relative">
-          <button @click="toggleSettings" title="Settings" class="flex justify-center items-center p-2 rounded-md hover:bg-cx-surface-700/20">
+          <button @click="toggleSettings" title="Settings" class="flex justify-center items-center p-3 lg:p-2 rounded-md hover:bg-cx-surface-700/20 min-h-11 min-w-11">
             <Icon name="uil:cog" class="h-6 w-6 text-cx-text-subtle" />
           </button>
           <div v-if="settingsOpen" class="absolute bottom-full left-0 mb-2 w-48 rounded-md border border-cx-border bg-cx-surface-800/30 backdrop-blur shadow-lg p-2 z-50">

@@ -7,7 +7,7 @@
     >
       <button
         type="button"
-        class="w-full text-[15px] rounded-md flex items-center gap-2 text-cx-text-muted text-left min-w-0 hover:bg-cx-surface-800/40 rounded"
+        class="w-full text-[15px] rounded-md flex items-center gap-2 text-cx-text-muted text-left min-w-0 hover:bg-cx-surface-800/40 rounded px-2 py-2 lg:py-1 min-h-11"
         @click="toggleSchool(school)"
       >
         <Icon
@@ -22,7 +22,7 @@
         <NuxtLink
           v-for="program in school.filteredPrograms"
           :key="program.prefix"
-          class="w-full rounded-md flex items-center gap-2 justify-between hover:bg-slate-800/40 px-1 py-1 rounded"
+          class="w-full rounded-md flex items-center gap-2 justify-between hover:bg-slate-800/40 px-2 py-2 lg:py-1 rounded min-h-11"
           :to="`/course/${termId}/${school.prefix}/${program.prefix}`"
         >
           <div class="flex items-center gap-2 flex-1 min-w-0">
