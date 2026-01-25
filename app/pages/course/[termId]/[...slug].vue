@@ -1,12 +1,10 @@
 <template>
-  <div class="w-full h-full flex">
-    <LeftPanel />
-    <MiddlePanel />
-    <RightPanel />
-  </div>
+  <ThreePanelLayout />
 </template>
 
 <script setup lang="ts">
+import ThreePanelLayout from '@/components/ThreePanelLayout.vue'
+
 definePageMeta({
   keepalive: true,
   key: 'course-term'

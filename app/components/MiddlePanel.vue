@@ -1,8 +1,8 @@
 <template>
-  <div class="w-full h-full border-x border-cx-border flex flex-col min-w-80 p-4">
+  <div class="w-full h-full border-x border-cx-border flex flex-col min-w-0 lg:min-w-80 p-3 lg:p-4">
     <div class="w-full flex flex-col gap-2 pb-2 border-cx-border">
       <span class="text-sm text-cx-text-subtle">Available Courses</span>
-      <input v-model="filters.searchText" type="text" placeholder="Search Courses" class="w-full p-2 text-sm rounded-md border border-cx-border focus:outline-none focus:ring-1 focus:ring-cx-text-muted" />
+      <input v-model="filters.searchText" type="text" placeholder="Search Courses" class="w-full p-2 min-h-11 text-sm rounded-md border border-cx-border focus:outline-none focus:ring-1 focus:ring-cx-text-muted" />
 
       <!-- Filters Div -->
       <FilterBar
@@ -18,7 +18,7 @@
       />
 
       <div class="w-full flex justify-between items-center px-2">
-        <div class="flex gap-1 cursor-pointer select-none" @click="showFilters = !showFilters">
+        <div class="flex gap-1 cursor-pointer select-none min-h-11 items-center" @click="showFilters = !showFilters">
           <Icon name="uil:filter" class="h-4 w-4 text-cx-text-weak-muted duration-1000" :class="showFilters ? 'rotate-180' : ''" />
           <span class="text-xs text-cx-text-secondary">Filters</span>
         </div>

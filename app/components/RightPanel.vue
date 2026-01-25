@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full h-full flex flex-col justify-between">
+  <div class="w-full h-full flex flex-col lg:justify-between overflow-y-auto lg:overflow-hidden min-w-0">
 
-    <div class="gap-2 flex flex-col p-4 h-full overflow-y-hidden">
+    <div class="gap-2 flex flex-col p-3 lg:p-4 lg:h-full">
       <div v-if="details">
         <div class="flex items-center gap-2">
           <span class="text-sm text-cx-text-subtle">Course Details</span>
@@ -10,12 +10,12 @@
         <h1 class="text-2xl font-semibold">{{ details.title }}</h1>
       </div>
 
-      <div class="flex flex-col gap-2 overflow-y-scroll h-full">
+      <div class="flex flex-col gap-2 lg:overflow-y-scroll lg:h-full">
         <span v-if="details" class="text-sm text-cx-text-muted">
           {{ details.description || 'No description available.' }}
         </span>
 
-        <button v-if="details" class="text-sm w-fit p-2 rounded-md mt-1 mb-2 bg-cx-surface-800 hover:bg-cx-surface-700" :class="{ 'text-rose-500/80 border-rose-700/50 border-1': isInSchedule, 'text-cx-text-subtle': !isInSchedule }" @click="onAddOrRemove" @mouseenter="onHoverPreviewEnter" @mouseleave="onHoverPreviewLeave">
+        <button v-if="details" class="text-sm w-fit p-2 px-3 min-h-11 rounded-md mt-1 mb-2 bg-cx-surface-800 hover:bg-cx-surface-700" :class="{ 'text-rose-500/80 border-rose-700/50 border-1': isInSchedule, 'text-cx-text-subtle': !isInSchedule }" @click="onAddOrRemove" @mouseenter="onHoverPreviewEnter" @mouseleave="onHoverPreviewLeave">
           {{ isInSchedule ? 'Remove from Schedule' : 'Add to Schedule' }}
         </button>
 
@@ -97,19 +97,20 @@
 
     </div>
 
-    <div class="w-full h-full max-h-2/5 min-h-56 border-t border-cx-border pt-2">
+    <div class="w-full border-t border-cx-border pt-2 min-h-[280px] lg:min-h-56 lg:h-full lg:max-h-2/5">
       <ScheduleGrid
         :blocks="blocks"
         :preview-blocks="previewBlocks"
         :on-block-click="onBlockClick"
         :on-day-mouse-down="onDayMouseDown"
+        :compact="isMobile"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getCourseDetails, getSectionDetails, type CourseDetails } from '@/composables/useAPI'
 import { useSchedule } from '@/composables/useSchedule'
 import type { ScheduleBlock } from '@/composables/scheduleUtils'
@@ -120,6 +121,9 @@ import { useCourseSelection } from '@/composables/useCourseSelection'
 import { useRouteMode } from '@/composables/useRouteMode'
 import ScheduleGrid from '@/components/ScheduleGrid.vue'
 import { useRMPRatings } from '@/composables/useRMPRatings'
+
+const props = defineProps<{ isMobile?: boolean }>()
+const isMobile = computed(() => !!props.isMobile)
 
 const { selectedCourseCode, selectedSectionId, selectCourse } = useCourseSelection()
 const router = useRouter()
