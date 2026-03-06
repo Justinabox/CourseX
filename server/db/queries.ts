@@ -598,3 +598,11 @@ export async function removeScheduleSectionId(userId: number, termCode: string, 
   `
   return rows.length > 0 ? (rows[0].section_ids || []) : []
 }
+
+// ─── Pipeline Metadata ──────────────────────────────────────────────────────
+
+export async function queryPipelineMetaTimestamp(key: string): Promise<string | null> {
+  const sql = useSql()
+  const rows = await sql`SELECT updated_at FROM pipeline_meta WHERE key = ${key}`
+  return rows.length > 0 ? (rows[0].updated_at as string) : null
+}

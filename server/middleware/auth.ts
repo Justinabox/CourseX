@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
 
   // Allow auth-related routes and public endpoints
   if (path.startsWith('/api/_auth/') || path.startsWith('/auth/')) return
-  if (path === '/api/terms' || path === '/api/programs') return
+  if (path === '/api/terms' || path === '/api/programs' || path === '/api/meta') return
 
   // Protect all API routes
   if (path.startsWith('/api/')) {

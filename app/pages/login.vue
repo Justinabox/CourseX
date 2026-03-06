@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full h-full relative rounded-lg overflow-hidden">
-    <div class="z-1 flex flex-col items-center w-1/3 min-w-96 bg-cx-surface-950">
+    <div class="z-1 flex flex-col items-center w-92 bg-cx-surface-950/75 backdrop-blur-sm">
 
       <div class="flex flex-col gap-8 px-12 w-full h-full justify-center items-start">
         <div class="font-serif flex flex-col gap-1">
@@ -26,12 +26,18 @@
         <p v-if="error === 'unauthorized'" class="text-sm text-cx-status-error-text text-center">
           Only USC email addresses (@usc.edu) are allowed.
         </p>
+        <p v-else-if="error === 'db'" class="text-sm text-cx-status-error-text text-center">
+          Something went wrong. Please try again later.
+        </p>
+        <p v-else-if="error === 'oauth'" class="text-sm text-cx-status-error-text text-center">
+          Sign-in failed: {{ route.query.message || 'unknown error' }}
+        </p>
       </div>
 
 
       <div class="flex flex-col items-center justify-center w-full py-2 border-t border-cx-border">
         <span class="text-sm text-cx-text-muted">Built with ❤️ by Korgo</span>
-        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: 20260124 00:28 PST</span>
+        <span class="text-[8px] text-cx-text-weak-muted">ver: <a href="https://github.com/MeloticZ/CourseX" class="underline hover:text-cx-text-secondary">{{ commitSha.slice(0, 7) }}</a> - data: {{ dataTimestamp }}</span>
       </div>
 
     </div>
@@ -39,37 +45,36 @@
     <ClientOnly class="absolute inset-0">
       <Shader>
         <Swirl
-          :coarse-x="26"
-          :coarse-y="24"
-          color-a="#b106ba"
-          color-b="#eb491c"
-          color-space="oklch"
-          :detail="0.7"
-          :fine-x="50"
-          :fine-y="50"
-          :medium-x="50"
-          :medium-y="50"
-          :speed="1.5"/>
-        <WaveDistortion
-          :angle="223"
-          edges="mirror"
-          :frequency="1.7"
-          :speed="0.1"
-          :strength="0.54"
-          wave-type="triangle">
-          <Grid
-            blend-mode="hardLight"
-            :cells="29"
-            :thickness="3.5"
-            :transform="{'scale':0.75}"/>
-        </WaveDistortion>
+          color-a="#0b1329"
+          color-b="#0c0f17"
+          :detail="1.6"/>
+        <Aurora
+          :balance="73"
+          blend-mode="linearDodge"
+          :center="{'x':0.33,'y':0.36}"
+          color-a="#8d54ff"
+          color-b="#29ff8d"
+          color-c="#1122d9"
+          color-space="oklab"
+          :height="84"
+          :intensity="75"
+          :ray-density="24"
+          :seed="14"
+          :speed="5.6"
+          :waviness="78"/>
         <GridDistortion
-          :decay="1.8"
-          edges="wrap"
-          :grid-size="8"
-          :intensity="1"
-          :radius="1.75"
-          :swirl="0.1"/>
+          :grid-size="{
+            type: 'map',
+            source: '',
+            channel: 'alpha',
+            inputMax: 1,
+            inputMin: 0,
+            outputMax: 128,
+            outputMin: 8
+          }"
+          :intensity="2"/>
+        <FilmGrain
+          :strength="0.1"/>
       </Shader>
     </ClientOnly>
   </div>
@@ -79,10 +84,10 @@
 import { computed } from 'vue'
 import {
   Shader,
-  Grid,
+  Aurora,
+  FilmGrain,
   GridDistortion,
-  Swirl,
-  WaveDistortion
+  Swirl
 } from 'shaders/vue'
 
 const { loggedIn } = useUserSession()
@@ -91,6 +96,26 @@ const error = computed(() => route.query.error as string | undefined)
 
 const runtimeConfig = useRuntimeConfig()
 const commitSha = computed(() => runtimeConfig.public.WORKERS_CI_COMMIT_SHA || 'dev')
+
+const { data: meta } = await useFetch('/api/meta')
+const dataTimestamp = computed(() => {
+  const ts = meta.value?.coursesLastSuccess
+  if (!ts) return 'N/A'
+  const d = new Date(ts)
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Los_Angeles',
+    timeZoneName: 'short',
+  })
+  const parts = fmt.formatToParts(d)
+  const p = (type: string) => parts.find(p => p.type === type)?.value ?? ''
+  return `${p('year')}${p('month')}${p('day')} ${p('hour')}:${p('minute')} ${p('timeZoneName')}`
+})
 
 if (loggedIn.value) {
   navigateTo('/')

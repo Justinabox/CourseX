@@ -10,7 +10,13 @@ export default defineOAuthGoogleEventHandler({
       return sendRedirect(event, '/login?error=unauthorized')
     }
 
-    await upsertUser(user.sub, email, user.name || '', user.picture || null)
+    try {
+      await upsertUser(user.sub, email, user.name || '', user.picture || null)
+    }
+    catch (err) {
+      console.error('Failed to upsert user:', err)
+      return sendRedirect(event, `/login?error=db`)
+    }
 
     await setUserSession(event, {
       user: {
@@ -25,6 +31,7 @@ export default defineOAuthGoogleEventHandler({
   },
   onError(event, error) {
     console.error('Google OAuth error:', error)
-    return sendRedirect(event, '/login')
+    const msg = encodeURIComponent(error instanceof Error ? error.message : String(error))
+    return sendRedirect(event, `/login?error=oauth&message=${msg}`)
   },
 })
