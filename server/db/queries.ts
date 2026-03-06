@@ -1,6 +1,19 @@
 import { useSql } from '~~/server/db'
 import { validateTermCode } from '~~/server/utils/termValidator'
 
+// ─── Terms ────────────────────────────────────────────────────────────────
+
+export async function queryTerms() {
+  const sql = useSql()
+  const rows = await sql`SELECT term_code, season, year, status FROM terms ORDER BY term_code DESC`
+  return rows.map((r: any) => ({
+    termCode: r.term_code,
+    season: r.season,
+    year: r.year,
+    status: r.status,
+  }))
+}
+
 // ─── Programs (school → program tree) ──────────────────────────────────────
 
 export async function queryPrograms() {

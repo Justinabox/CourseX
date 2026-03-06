@@ -1,6 +1,6 @@
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
 
-export function useScrollMemory(scopeKey: () => string | string) {
+export function useScrollMemory(scopeKey: (() => string) | string) {
   const containerRef = ref<HTMLElement | null>(null)
   const mapState = useState<Record<string, number>>('ui:scroll:generic', () => ({}))
 
@@ -39,6 +39,21 @@ export function useScrollMemory(scopeKey: () => string | string) {
   })
 
   onBeforeUnmount(() => {
+    const el = containerRef.value
+    if (!el) return
+    persist()
+    el.removeEventListener('scroll', onScroll)
+  })
+
+  // Support keepalive: restore on reactivation, persist on deactivation
+  onActivated(() => {
+    const el = containerRef.value
+    if (!el) return
+    restore()
+    el.addEventListener('scroll', onScroll, { passive: true })
+  })
+
+  onDeactivated(() => {
     const el = containerRef.value
     if (!el) return
     persist()

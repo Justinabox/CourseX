@@ -1,8 +1,10 @@
 import { computed } from 'vue'
+import { useTerms } from '@/composables/useTerms'
 
 export function useTermId() {
   const route = useRoute()
-  const termId = computed(() => String((route.params as any)?.termId || '20261'))
+  const { activeTermCode } = useTerms()
+  const termId = computed(() => String((route.params as any)?.termId || activeTermCode.value))
   return { termId }
 }
 

@@ -164,7 +164,7 @@ const starIconClass = computed(() =>
 )
 
 const isGESM = computed(() => (props.code || '').toUpperCase().startsWith('GESM'))
-const geLetters = computed(() => Array.from(new Set(props.ges || [])).filter(Boolean))
+const geLetters = computed(() => Array.from(new Set(props.ges || [])).filter(g => g && g !== 'GESM'))
 
 function renderSchedule(section: UICourseSection) {
   return formatCardSchedule(section.schedules) || 'TBA'

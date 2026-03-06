@@ -1,6 +1,5 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useUiStore } from '@/stores/ui'
 import { useScheduleStore } from '@/stores/schedule'
 import type { Schedule } from '@/types/db'
 import {
@@ -10,7 +9,6 @@ import {
   type ScheduleBlock,
   type DayOfWeek,
 } from '@/composables/scheduleUtils'
-import { useScheduleManualStore } from '@/stores/scheduleManual'
 
 export const DAY_LABELS: DayOfWeek[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -29,14 +27,12 @@ function roundToFiveMinutes(minutes: number): number {
 }
 
 export function useSchedule() {
-  const ui = useUiStore()
   const scheduleStore = useScheduleStore()
   const scheduledCourses = computed(() => scheduleStore.scheduledCourses)
   const hasScheduled = (courseCode?: string | null, sectionId?: string | null) => scheduleStore.hasScheduled(courseCode, sectionId)
   const removeScheduledSection = (courseCode?: string | null, sectionId?: string | null) => scheduleStore.removeScheduledSection(courseCode, sectionId)
-  // Manual blocks created by user interactions (dragging). Persisted via Pinia store.
-  const manualStore = useScheduleManualStore()
-  const { manualBlocks } = storeToRefs(manualStore)
+  // Manual blocks created by user interactions (dragging). Persisted via unified schedule store.
+  const { manualBlocks } = storeToRefs(scheduleStore)
   // Ephemeral preview blocks that should never be persisted
   const previewBlocks = useState<ScheduleBlock[]>('ui:schedule:preview', () => [])
 

@@ -28,11 +28,11 @@
       </div>
 
       <div class="grid grid-cols-3 grid-rows-2 gap-1 shrink-0 w-17 h-11 lg:w-20 lg:h-13 xl:w-23 xl:h-15 2xl:w-26 2xl:h-17">
-        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center" :class="dClearanceClass" title="Filter by D-Clearance" @click="$emit('cycle-tri', 'dClearance')" @contextmenu.prevent="$emit('set-tri', 'dClearance', 'any')" :aria-pressed="filters.dClearance !== 'any'">D</button>
-        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center" :class="prereqClass" title="Filter by Prerequisites" @click="$emit('cycle-tri', 'prerequisites')" @contextmenu.prevent="$emit('set-tri', 'prerequisites', 'any')" :aria-pressed="filters.prerequisites !== 'any'">R</button>
-        <button class="text-sm xl:text-md 2xl:text-lg text-sideways font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm text-cx-text-weak-shimmer row-span-2 rounded-r-sm" title="Reset Filters" @click="$emit('reset')">Reset</button>
-        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm" :class="conflictsClass" title="Exclude Courses with Schedule Conflicts" @click="$emit('toggle-conflicts')" @contextmenu.prevent="$emit('set-conflicts-any')" :aria-pressed="filters.conflicts === 'exclude'"><Icon name="uil:clock" class="aspect-square w-full" :class="conflictsIconClass" /></button>
-        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm" :class="enrollmentClass" title="Exclude Full Enrollment Courses" @click="$emit('toggle-enrollment-open-only')" @contextmenu.prevent="$emit('set-enrollment-any')" :aria-pressed="filters.enrollment !== 'any'"><Icon name="uil:user" class="aspect-square w-full" :class="enrollmentIconClass" /></button>
+        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center" :class="dClearanceClass" title="Filter by D-Clearance" @click="cycleTriState('dClearance')" @contextmenu.prevent="setTriState('dClearance', 'any')" :aria-pressed="filters.dClearance !== 'any'">D</button>
+        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center" :class="prereqClass" title="Filter by Prerequisites" @click="cycleTriState('prerequisites')" @contextmenu.prevent="setTriState('prerequisites', 'any')" :aria-pressed="filters.prerequisites !== 'any'">R</button>
+        <button class="text-sm xl:text-md 2xl:text-lg text-sideways font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm text-cx-text-weak-shimmer row-span-2 rounded-r-sm" title="Reset Filters" @click="emit('reset')">Reset</button>
+        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm" :class="conflictsClass" title="Exclude Courses with Schedule Conflicts" @click="toggleConflicts" @contextmenu.prevent="setConflictsAny" :aria-pressed="filters.conflicts === 'exclude'"><Icon name="uil:clock" class="aspect-square w-full" :class="conflictsIconClass" /></button>
+        <button class="aspect-square text-sm lg:text-md xl:text-lg font-semibold line-clamp-1 leading-none grid place-items-center bg-zebra-sm" :class="enrollmentClass" title="Exclude Full Enrollment Courses" @click="toggleEnrollmentOpenOnly" @contextmenu.prevent="setEnrollmentAny" :aria-pressed="filters.enrollment !== 'any'"><Icon name="uil:user" class="aspect-square w-full" :class="enrollmentIconClass" /></button>
       </div>
     </div>
   </div>
@@ -46,17 +46,22 @@ import { minutesToTime, parseTimeLooseToMinutes } from '@/composables/useTimePar
 
 const props = defineProps<{ show: boolean; filters: CourseFiltersState }>()
 
-defineEmits([
-  'cycle-tri',
-  'set-tri',
-  'toggle-conflicts',
-  'set-conflicts-any',
-  'toggle-enrollment-open-only',
-  'set-enrollment-any',
-  'reset',
-])
+const emit = defineEmits<{
+  (e: 'reset'): void
+}>()
 
 const filters = props.filters
+
+type TriKey = 'dClearance' | 'prerequisites'
+const cycleTriState = (key: TriKey) => {
+  const val = filters[key]
+  filters[key] = (val === 'any' ? 'only' : val === 'only' ? 'exclude' : 'any') as any
+}
+const setTriState = (key: TriKey, v: 'any' | 'only' | 'exclude') => { filters[key] = v as any }
+const toggleConflicts = () => { filters.conflicts = filters.conflicts === 'exclude' ? 'any' : 'exclude' }
+const setConflictsAny = () => { filters.conflicts = 'any' }
+const toggleEnrollmentOpenOnly = () => { filters.enrollment = filters.enrollment === 'only-open' ? 'any' : 'only-open' }
+const setEnrollmentAny = () => { filters.enrollment = 'any' }
 
 const validRingClass = 'shadow-[0_0_2px_1px] shadow-cx-text-secondary text-cx-text-weak'
 

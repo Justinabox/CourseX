@@ -11,9 +11,25 @@ export const useScheduleStore = defineStore('schedule', () => {
   const byTerm = ref<Record<string, Record<string, UICourse>>>({})
   // Persisted minimal state: pairs per term [{ code, sectionId }]
   const pairsByTerm = ref<Record<string, SchedulePair[]>>({})
+  // Manual calendar blocks created by user drag interactions
+  const manualBlocks = ref<ScheduleBlock[]>([])
   const { termId } = useTermId()
 
   function keyFor(term: string) { return `cx:schedule:${term}` }
+  function manualKeyFor(term: string) { return `cx:scheduleManual:${term}` }
+
+  function normalizeManualBlocksRaw(raw: unknown, term: string): ScheduleBlock[] {
+    try {
+      const obj: any = raw || []
+      let list: any = (obj && obj.schedulesByTerm && obj.schedulesByTerm[term]) ? obj.schedulesByTerm[term] : obj
+      if (list && list.schedulesByTerm && list.schedulesByTerm[term]) {
+        list = list.schedulesByTerm[term]
+      }
+      return Array.isArray(list) ? list as ScheduleBlock[] : []
+    } catch {
+      return []
+    }
+  }
 
   function normalizeCourseMapRaw(raw: unknown, term: string): Record<string, UICourse> {
     try {
@@ -118,9 +134,25 @@ export const useScheduleStore = defineStore('schedule', () => {
 
       loadFromStorageForCurrentTerm()
 
+      // Load manual blocks from localStorage
+      const loadManualBlocks = () => {
+        try {
+          const raw = localStorage.getItem(manualKeyFor(termId.value))
+          if (raw != null) {
+            manualBlocks.value = normalizeManualBlocksRaw(JSON.parse(raw), termId.value)
+          } else {
+            manualBlocks.value = []
+          }
+        } catch {
+          manualBlocks.value = []
+        }
+      }
+      loadManualBlocks()
+
       // Reload from storage whenever the term changes (client-side navigation)
       watch(termId, () => {
         loadFromStorageForCurrentTerm()
+        loadManualBlocks()
       })
       watch(() => pairsByTerm.value[termId.value], (v) => {
         // Persist pairs per term
@@ -131,6 +163,10 @@ export const useScheduleStore = defineStore('schedule', () => {
         try { localStorage.setItem(keyFor(termId.value), JSON.stringify({ schedulesByTerm: { [termId.value]: normalized } })) } catch {}
         // Re-hydrate UI map from pairs
         hydrateForCurrentTerm()
+      }, { deep: true })
+      watch(manualBlocks, (v) => {
+        const normalized = normalizeManualBlocksRaw(v as any, termId.value)
+        try { localStorage.setItem(manualKeyFor(termId.value), JSON.stringify({ schedulesByTerm: { [termId.value]: normalized } })) } catch {}
       }, { deep: true })
     })
   }
@@ -212,6 +248,7 @@ export const useScheduleStore = defineStore('schedule', () => {
 
   return {
     byTerm,
+    manualBlocks,
     scheduledCourses,
     upsertScheduledSection,
     hasScheduled,

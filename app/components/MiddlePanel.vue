@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full border-x border-cx-border flex flex-col min-w-80 p-4">
+  <div class="w-full h-full border-x border-cx-border flex flex-col p-4">
     <div class="w-full flex flex-col gap-2 pb-2 border-cx-border">
       <span class="text-sm text-cx-text-subtle">Available Courses</span>
       <input v-model="filters.searchText" type="text" placeholder="Search Courses" class="w-full p-2 text-sm rounded-md border border-cx-border focus:outline-none focus:ring-1 focus:ring-cx-text-muted" />
@@ -8,12 +8,6 @@
       <FilterBar
         :show="showFilters"
         :filters="filters"
-        @cycle-tri="cycleTriState"
-        @set-tri="setTriState"
-        @toggle-conflicts="toggleConflicts"
-        @set-conflicts-any="setConflictsAny"
-        @toggle-enrollment-open-only="toggleEnrollmentOpenOnly"
-        @set-enrollment-any="setEnrollmentAny"
         @reset="reset"
       />
 
@@ -56,7 +50,6 @@
 import { computed, onMounted, ref, onBeforeUnmount } from 'vue'
 import { type UICourse } from '@/composables/useAPI'
 import { useCourseFilters } from '@/composables/useCourseFilters'
-import { useUiStore } from '@/stores/ui'
 import { useCourseListSource } from '@/composables/useCourseListSource'
 import { useVariableVirtualList } from '@/composables/useVariableVirtualList'
 import { useScrollMemory } from '@/composables/useScrollMemory'
@@ -71,23 +64,6 @@ const showFilters = ref(false)
 // Data source and filters
 const { courses, mode, scopeKey } = useCourseListSource()
 const { filters, filteredCourses, reset } = useCourseFilters(courses)
-
-// Tri-state toggles for D and R (handlers for FilterBar)
-type TriKey = 'dClearance' | 'prerequisites'
-const cycleTriState = (key: TriKey) => {
-  const val = filters[key]
-  const next = val === 'any' ? 'only' : val === 'only' ? 'exclude' : 'any'
-  filters[key] = next as any
-}
-const setTriState = (key: TriKey, v: 'any' | 'only' | 'exclude') => { filters[key] = v as any }
-
-// Conflicts toggle (any <-> exclude)
-const toggleConflicts = () => { filters.conflicts = filters.conflicts === 'exclude' ? 'any' : 'exclude' }
-const setConflictsAny = () => { filters.conflicts = 'any' }
-
-// Enrollment toggle (any <-> only-open)
-const toggleEnrollmentOpenOnly = () => { filters.enrollment = filters.enrollment === 'only-open' ? 'any' : 'only-open' }
-const setEnrollmentAny = () => { filters.enrollment = 'any' }
 
 // Variable-height virtualization with key-based heights
 const {
@@ -125,12 +101,10 @@ onBeforeUnmount(() => {
 })
 
 // Click to navigate
-const { setSelection: selectCourse } = useUiStore()
 const { makeSelectionPath } = useRouteMode()
 
 const onSectionClick = (courseCode: string, sectionId: string) => {
   const parsed = mode.value
-  selectCourse(courseCode, sectionId || null)
   router.push(makeSelectionPath(parsed, courseCode, sectionId || 'section'))
 }
 </script>
