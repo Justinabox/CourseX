@@ -1,4 +1,3 @@
-import { useTermId } from '@/composables/useTermId'
 import type { CourseDetails, UICourse } from '../api/types'
 import { normalizeCourseCode } from '@/utils/normalize'
 
@@ -19,14 +18,12 @@ export async function listSchoolAndPrograms() {
   }
 }
 
-export async function listAllCourses(): Promise<UICourse[]> {
-  const { termId } = useTermId()
-  const tid = termId.value
-  const cached = coursesByTermCache.get(tid)
+export async function listAllCourses(termId: string): Promise<UICourse[]> {
+  const cached = coursesByTermCache.get(termId)
   if (cached && Date.now() - cached.ts < COURSES_CACHE_TTL) return cached.data
   try {
-    const data = await $fetch<UICourse[]>(`/api/courses/${tid}`)
-    coursesByTermCache.set(tid, { data, ts: Date.now() })
+    const data = await $fetch<UICourse[]>(`/api/courses/${termId}`)
+    coursesByTermCache.set(termId, { data, ts: Date.now() })
     return data
   } catch (e: any) {
     if (e?.statusCode === 401) return []
@@ -34,42 +31,38 @@ export async function listAllCourses(): Promise<UICourse[]> {
   }
 }
 
-export async function getSchoolCourses(schoolPrefix: string, programPrefix: string): Promise<UICourse[]> {
+export async function getSchoolCourses(termId: string, schoolPrefix: string, programPrefix: string): Promise<UICourse[]> {
   if (!schoolPrefix || !programPrefix) return []
-  const { termId } = useTermId()
   try {
-    return await $fetch<UICourse[]>(`/api/courses/${termId.value}/by-program/${encodeURIComponent(programPrefix)}`)
+    return await $fetch<UICourse[]>(`/api/courses/${termId}/by-program/${encodeURIComponent(programPrefix)}`)
   } catch (e: any) {
     if (e?.statusCode === 401) return []
     throw e
   }
 }
 
-export async function getCourseDetails(courseCode: string): Promise<CourseDetails | null> {
+export async function getCourseDetails(termId: string, courseCode: string): Promise<CourseDetails | null> {
   if (!courseCode) return null
-  const { termId } = useTermId()
   try {
-    return await $fetch<CourseDetails>(`/api/courses/${termId.value}/${encodeURIComponent(courseCode)}`)
+    return await $fetch<CourseDetails>(`/api/courses/${termId}/${encodeURIComponent(courseCode)}`)
   } catch {
     return null
   }
 }
 
-export async function getSectionDetails(courseCode: string, sectionId: string): Promise<CourseDetails | null> {
+export async function getSectionDetails(termId: string, courseCode: string, sectionId: string): Promise<CourseDetails | null> {
   if (!courseCode || !sectionId) return null
-  const { termId } = useTermId()
   try {
-    return await $fetch<CourseDetails>(`/api/sections/${termId.value}/${encodeURIComponent(sectionId)}`)
+    return await $fetch<CourseDetails>(`/api/sections/${termId}/${encodeURIComponent(sectionId)}`)
   } catch {
     return null
   }
 }
 
-export async function getSectionDetailsBatch(sectionIds: string[]): Promise<CourseDetails[]> {
+export async function getSectionDetailsBatch(termId: string, sectionIds: string[]): Promise<CourseDetails[]> {
   if (!sectionIds || sectionIds.length === 0) return []
-  const { termId } = useTermId()
   try {
-    return await $fetch<CourseDetails[]>(`/api/sections/${termId.value}/batch`, {
+    return await $fetch<CourseDetails[]>(`/api/sections/${termId}/batch`, {
       method: 'POST',
       body: { sectionIds },
     })

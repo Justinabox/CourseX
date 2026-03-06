@@ -9,13 +9,13 @@
     {{ isInSchedule ? 'Remove from Schedule' : 'Add to Schedule' }}
   </button>
 
-  <button
+  <!-- <button
     class="text-sm w-fit py-2 px-3 rounded-md bg-cx-surface-800 hover:bg-cx-surface-700"
     :class="{ 'text-cx-status-warning-icon/80 border-cx-status-warning-border border-1': isInWatchlist, 'text-cx-text-subtle': !isInWatchlist }"
     @click="onAddOrRemoveWatchlist"
   >
     {{ isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist' }}
-  </button>
+  </button> -->
 </template>
 
 <script setup lang="ts">

@@ -1,11 +1,11 @@
 <template>
-  <div class="w-full flex flex-col">
-    <NuxtLink :to="`/course/${termId}/all`" class="w-full rounded-md flex items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+  <div class="w-full flex flex-col gap-0.5">
+    <NuxtLink :to="`/course/${termId}/all`" class="w-full rounded-md flex items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded" active-class="bg-cx-surface-800/60">
       <Icon name="uil:list-ul" class="h-5 w-5"/>
       <span class="text-md">All Courses</span>
     </NuxtLink>
 
-    <NuxtLink :to="`/course/${termId}/watchlist`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+    <NuxtLink :to="`/course/${termId}/watchlist`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded" active-class="bg-cx-surface-800/60">
       <div class="flex gap-2 items-center shrink-0">
         <Icon name="uil:star" class="h-5 w-5"/>
         <span class="text-md">Watchlist</span>
@@ -15,7 +15,7 @@
       </div>
     </NuxtLink>
 
-    <NuxtLink :to="`/course/${termId}/scheduled`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+    <NuxtLink :to="`/course/${termId}/scheduled`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded" active-class="bg-cx-surface-800/60">
       <div class="flex gap-2 items-center shrink-0">
         <Icon name="uil:calendar" class="h-5 w-5"/>
         <span class="text-md">Scheduled Courses</span>

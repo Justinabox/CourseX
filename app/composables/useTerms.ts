@@ -1,6 +1,8 @@
+interface Term { termCode: number; season: string; year: number; status: string }
+
 export function useTerms() {
-  const { data: terms } = useAsyncData('terms', () => $fetch('/api/terms'), {
-    default: () => [] as { termCode: number; season: string; year: number; status: string }[],
+  const { data: terms } = useAsyncData('terms', () => $fetch<Term[]>('/api/terms'), {
+    default: () => [] as Term[],
   })
 
   const activeTermCode = computed(() => {

@@ -233,7 +233,7 @@ export const useScheduleStore = defineStore('schedule', () => {
     }
   })
 
-  const totalScheduledUnitsLabel = computed<string>(() => `${totalScheduledUnits.value.toFixed(1)} credits`)
+  const totalScheduledUnitsLabel = computed<string>(() => `${totalScheduledUnits.value.toFixed(1)} units`)
 
   function upsertScheduledSection(course: { code: string; title: string; description: string }, section: UICourseSection) {
     const code = normalizeCourseCode((course.code || '').toString())

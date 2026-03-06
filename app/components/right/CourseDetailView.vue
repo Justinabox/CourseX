@@ -20,18 +20,18 @@
 
         <div class="flex flex-col gap-1.5 border-y border-cx-border py-4">
           <InstructorList :instructors="details.instructors || []" />
-          <div class="flex items-center gap-2">
-            <Icon name="uil:user" class="h-5 w-5" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
+          <div class="flex justify-start gap-2">
+            <Icon name="uil:user" class="h-5 w-5 shrink-0" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
             <span class="text-sm" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-subtle': details.enrolled !== details.capacity }">{{ details.enrolled }} / {{ details.capacity }} Students</span>
           </div>
-          <div v-if="detailScheduleLines.length > 0" class="flex items-start gap-2">
+          <div v-if="detailScheduleLines.length > 0" class="flex justify-start gap-2">
             <Icon name="uil:clock" class="h-5 w-5 text-cx-text-muted shrink-0 mt-0.5" />
             <div class="flex flex-col">
               <span v-for="(line, idx) in detailScheduleLines" :key="idx" class="text-sm text-cx-text-subtle">{{ line }}</span>
             </div>
           </div>
-          <div v-if="showDetailLocation" class="flex items-center gap-2">
-            <Icon name="uil:location-point" class="h-5 w-5 text-cx-text-muted" />
+          <div v-if="showDetailLocation" class="flex justify-start gap-2">
+            <Icon name="uil:location-point" class="h-5 w-5 text-cx-text-muted shrink-0" />
             <span class="text-sm text-cx-text-subtle">{{ detailLocation }}</span>
           </div>
         </div>
@@ -48,9 +48,11 @@
 import { computed, ref, watch } from 'vue'
 import { getCourseDetails, getSectionDetails, type CourseDetails } from '@/composables/useAPI'
 import { useCourseSelection } from '@/composables/useCourseSelection'
+import { useTermId } from '@/composables/useTermId'
 import { formatDetailScheduleLines, formatCardLocation } from '@/composables/api/transforms'
 
 const { selectedCourseCode, selectedSectionId } = useCourseSelection()
+const { termId } = useTermId()
 
 const details = ref<CourseDetails | null>(null)
 const isLoading = ref(false)
@@ -59,6 +61,7 @@ const loadError = ref<string | null>(null)
 async function loadDetails() {
   const code = selectedCourseCode.value
   const section = selectedSectionId.value
+  const tid = termId.value
   if (!code) {
     details.value = null
     return
@@ -67,13 +70,13 @@ async function loadDetails() {
   loadError.value = null
   try {
     if (section) {
-      const bySection = await getSectionDetails(code, section)
+      const bySection = await getSectionDetails(tid, code, section)
       if (bySection) {
         details.value = bySection
         return
       }
     }
-    details.value = await getCourseDetails(code)
+    details.value = await getCourseDetails(tid, code)
   } catch (e: any) {
     loadError.value = e?.message || 'Failed to load course details'
     details.value = null

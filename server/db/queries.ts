@@ -7,10 +7,10 @@ export async function queryTerms() {
   const sql = useSql()
   const rows = await sql`SELECT term_code, season, year, status FROM terms ORDER BY term_code DESC`
   return rows.map((r: any) => ({
-    termCode: r.term_code,
-    season: r.season,
-    year: r.year,
-    status: r.status,
+    termCode: r.term_code as number,
+    season: r.season as string,
+    year: r.year as number,
+    status: r.status as string,
   }))
 }
 

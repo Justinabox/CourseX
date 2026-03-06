@@ -16,7 +16,7 @@ export async function hydrateScheduledCourses(pairs: SchedulePair[], termId: str
   if (uniqueSectionIds.length === 0) return byKey
 
   // Single batch API call
-  const details = await getSectionDetailsBatch(uniqueSectionIds)
+  const details = await getSectionDetailsBatch(termId, uniqueSectionIds)
 
   // Build lookup by sectionId
   const detailsBySectionId = new Map<string, CourseDetails>()

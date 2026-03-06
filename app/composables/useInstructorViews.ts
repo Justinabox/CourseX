@@ -14,7 +14,7 @@ export async function resolveInstructorViews(names: string[], getProfessor: GetP
     unique.map(async (name) => {
       const prof = await getProfessor(name)
       const rating = prof && typeof prof.rating === 'number' && !Number.isNaN(prof.rating) ? prof.rating : NaN
-      const link = prof?.link || `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name)}`
+      const link = prof?.link || ''
       const isLow = typeof rating === 'number' && !Number.isNaN(rating) ? rating < 3.0 : false
       return { name, rating, link, isLow }
     })

@@ -60,10 +60,11 @@ export function useScrollMemory(scopeKey: (() => string) | string) {
     el.removeEventListener('scroll', onScroll)
   })
 
-  // update restore when key changes (e.g., route switch)
-  watch(scopeKey as any, () => {
-    restore()
-  })
+  if (typeof scopeKey === 'function') {
+    watch(scopeKey, () => {
+      restore()
+    })
+  }
 
   return {
     containerRef,

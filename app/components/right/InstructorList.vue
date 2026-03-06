@@ -1,19 +1,28 @@
 <template>
-  <div class="flex items-center gap-2">
-    <Icon name="uil:graduation-cap" class="h-5 w-5 text-cx-text-muted"/>
+  <div class="flex justify-start gap-2">
+    <Icon name="uil:graduation-cap" class="h-5 w-5 text-cx-text-muted shrink-0"/>
     <div class="flex flex-wrap items-center">
       <template v-if="instructorViews.length > 0">
         <template v-for="item in instructorViews" :key="item.name">
           <a
+            v-if="item.link"
             :href="item.link"
             target="_blank"
             rel="noopener noreferrer"
             class="text-sm underline decoration-1 decoration-dashed hover:text-cx-text-muted"
             :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }"
           >
-            <span v-if="!Number.isNaN(item.rating)" class="text-sm text-cx-text-subtle border-cx-text-secondary" :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
+            <span v-if="!Number.isNaN(item.rating)" class="text-sm border-cx-text-secondary" :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
             {{ item.name }}
           </a>
+          <span
+            v-else
+            class="text-sm"
+            :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }"
+          >
+            <span v-if="!Number.isNaN(item.rating)" class="text-sm border-cx-text-secondary" :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
+            {{ item.name }}
+          </span>
           <span class="text-cx-text-muted" v-if="item !== instructorViews[instructorViews.length - 1]">,&nbsp;</span>
         </template>
       </template>

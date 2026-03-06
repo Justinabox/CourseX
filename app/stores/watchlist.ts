@@ -101,7 +101,7 @@ export const useWatchlistStore = defineStore('watchlist', () => {
 
   async function hydrateForCurrentTerm() {
     try {
-      const allCourses = await listAllCourses()
+      const allCourses = await listAllCourses(termId.value)
       const keys = currentKeys()
       const map: Record<string, UICourse> = {}
 

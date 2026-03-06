@@ -103,14 +103,14 @@ export function schedulesToLocations(schedules: Schedule[]): string[] {
 export function formatUnitsRange(units: number[]): string {
   if (!units || units.length === 0) return ''
   const sorted = [...units].sort((a, b) => a - b)
-  const min = sorted[0]
-  const max = sorted[sorted.length - 1]
-  return min === max ? `${min}` : `${min}-${max}`
+  const min = sorted[0].toFixed(1)
+  const max = sorted[sorted.length - 1].toFixed(1)
+  return min === max ? min : `${min}-${max}`
 }
 
 export function formatUnitsOptions(units: number[]): string {
   if (!units || units.length === 0) return ''
-  return [...units].sort((a, b) => a - b).join(', ')
+  return [...units].sort((a, b) => a - b).map(u => u.toFixed(1)).join(', ')
 }
 
 // ─── CourseCode Formatting ───────────────────────────────────────────────────

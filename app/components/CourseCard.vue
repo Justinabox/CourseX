@@ -22,17 +22,19 @@
           </div>
         </div>
         <span class="text-sm truncate block flex-1 min-w-0 max-w-full">{{ title }}</span>
-        <span
+        <!-- <span
           @click.stop="onWatchlistToggle"
           :title="isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'"
           class="shrink-0 hover:scale-110 transition-transform cursor-pointer"
         >
-          <Icon
-            name="material-symbols-light:kid-star"
-            class="h-4 w-4 transition-colors"
-            :class="starIconClass"
-          />
-        </span>
+        </span> -->
+        <Icon
+          @click.stop="onWatchlistToggle"
+          :title="isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'"
+          name="lucide:star"
+          class="h-4 w-4 transition-colors shrink-0 hover:scale-110 transition-transform cursor-pointer"
+          :class="starIconClass"
+        />
         <span class="text-xs text-cx-text-secondary font-semibold shrink-0 ml-auto">{{ code }}</span>
       </div>
       <span class="text-xs text-cx-text-secondary line-clamp-2">{{ description }}</span>
@@ -100,8 +102,8 @@
 
           <div class="flex items-center gap-2 justify-between">
             <div class="flex items-center gap-1 min-w-0">
-              <Icon name="uil:clock" class="h-4 w-4 shrink-0 text-cx-text-muted" :class="scheduleCollisionClassFor(section, 'icon')" />
-              <span class="text-xs text-cx-text-secondary line-clamp-1" :class="scheduleCollisionClassFor(section, 'text')">{{ renderSchedule(section) }}</span>
+              <Icon name="uil:clock" class="h-4 w-4 shrink-0" :class="scheduleCollisionClassFor(section, 'icon')" />
+              <span class="text-xs line-clamp-1" :class="scheduleCollisionClassFor(section, 'text')">{{ renderSchedule(section) }}</span>
             </div>
 
             <div class="flex items-center gap-1 shrink-0">

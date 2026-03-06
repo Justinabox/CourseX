@@ -29,7 +29,7 @@
   --color-cx-status-danger-badge-text: oklch(89.2% 0.058 10.001); /* rose-200 */
   --color-cx-status-danger-glow: oklch(64.5% 0.246 16.439);       /* rose-500 */
   --color-cx-status-danger-border: oklch(50.5% 0.213 16.252 / 0.5); /* rose-700/50 */
-  --color-cx-status-danger-zebra: oklch(50.5% 0.213 16.252);      /* rose-700 */
+  --color-cx-status-danger-zebra: oklch(38% 0.213 16.252);        /* rose-800 */
 
   /* === Status: Warning (Yellow) === */
   --color-cx-status-warning-icon: oklch(79.5% 0.184 86.047);      /* yellow-500 */
@@ -39,14 +39,14 @@
   --color-cx-status-warning-badge-text: oklch(94.5% 0.129 101.54); /* yellow-200 */
   --color-cx-status-warning-glow: oklch(79.5% 0.184 86.047);      /* yellow-500 */
   --color-cx-status-warning-border: oklch(62.0% 0.162 79.629 / 0.5); /* yellow-700/50 */
-  --color-cx-status-warning-zebra: oklch(62.0% 0.162 79.629);     /* yellow-700 */
+  --color-cx-status-warning-zebra: oklch(48% 0.162 79.629);       /* yellow-800 */
 
   /* === Status: Success (Green) === */
   --color-cx-status-success-icon: oklch(72.3% 0.219 149.579);     /* green-500 */
   --color-cx-status-success-text: oklch(79.2% 0.209 151.711);     /* green-400 */
   --color-cx-status-success-badge-bg: oklch(39.2% 0.125 153.274); /* green-800 */
   --color-cx-status-success-badge-text: oklch(92.5% 0.14 155.995); /* green-200 */
-  --color-cx-status-success-zebra: oklch(39.2% 0.125 153.274);    /* green-700 */
+  --color-cx-status-success-zebra: oklch(49% 0.125 153.274);     /* green-900 */
 
   /* === Status: Error (for auth/form) === */
   --color-cx-status-error-text: oklch(71.2% 0.194 13.428);        /* rose-400 */
@@ -54,12 +54,12 @@
   /* === Type: Lab (Blue) === */
   --color-cx-type-lab-icon: oklch(62.3% 0.209 255.092);           /* blue-500 */
   --color-cx-type-lab-text: oklch(70.7% 0.165 254.624);           /* blue-400 */
-  --color-cx-type-lab-zebra: oklch(42.4% 0.199 265.638);          /* blue-700 */
+  --color-cx-type-lab-zebra: oklch(32% 0.199 265.638);            /* blue-800 */
 
   /* === Type: Discussion (Violet) === */
   --color-cx-type-disc-icon: oklch(60.6% 0.25 292.717);           /* violet-500 */
   --color-cx-type-disc-text: oklch(69.9% 0.198 293.541);          /* violet-400 */
-  --color-cx-type-disc-zebra: oklch(49.1% 0.27 292.581);          /* violet-700 */
+  --color-cx-type-disc-zebra: oklch(37% 0.27 292.581);            /* violet-800 */
 
   /* === Accent === */
   --color-cx-accent-star: oklch(79.5% 0.184 86.047);              /* yellow-500 */
@@ -93,12 +93,12 @@
   /* Status: Danger */
   --color-cx-status-danger-icon: oklch(64.5% 0.246 16.439);
   --color-cx-status-danger-text: oklch(71.2% 0.194 13.428);
-  --color-cx-status-danger-emphasis: oklch(50.5% 0.213 16.252);
+  --color-cx-status-danger-emphasis: oklch(60.5% 0.213 16.252);
   --color-cx-status-danger-badge-bg: oklch(39.6% 0.165 17.864);
   --color-cx-status-danger-badge-text: oklch(89.2% 0.058 10.001);
   --color-cx-status-danger-glow: oklch(64.5% 0.246 16.439);
   --color-cx-status-danger-border: oklch(50.5% 0.213 16.252 / 0.5);
-  --color-cx-status-danger-zebra: oklch(50.5% 0.213 16.252);
+  --color-cx-status-danger-zebra: oklch(30% 0.213 16.252);
 
   /* Status: Warning */
   --color-cx-status-warning-icon: oklch(79.5% 0.184 86.047);
@@ -108,14 +108,14 @@
   --color-cx-status-warning-badge-text: oklch(94.5% 0.129 101.54);
   --color-cx-status-warning-glow: oklch(79.5% 0.184 86.047);
   --color-cx-status-warning-border: oklch(62.0% 0.162 79.629 / 0.5);
-  --color-cx-status-warning-zebra: oklch(62.0% 0.162 79.629);
+  --color-cx-status-warning-zebra: oklch(40% 0.162 79.629);
 
   /* Status: Success */
   --color-cx-status-success-icon: oklch(72.3% 0.219 149.579);
   --color-cx-status-success-text: oklch(79.2% 0.209 151.711);
   --color-cx-status-success-badge-bg: oklch(39.2% 0.125 153.274);
   --color-cx-status-success-badge-text: oklch(92.5% 0.14 155.995);
-  --color-cx-status-success-zebra: oklch(39.2% 0.125 153.274);
+  --color-cx-status-success-zebra: oklch(49% 0.125 153.274);
 
   /* Status: Error */
   --color-cx-status-error-text: oklch(71.2% 0.194 13.428);
@@ -123,12 +123,12 @@
   /* Type: Lab */
   --color-cx-type-lab-icon: oklch(62.3% 0.209 255.092);
   --color-cx-type-lab-text: oklch(70.7% 0.165 254.624);
-  --color-cx-type-lab-zebra: oklch(42.4% 0.199 265.638);
+  --color-cx-type-lab-zebra: oklch(30% 0.199 265.638);
 
   /* Type: Discussion */
   --color-cx-type-disc-icon: oklch(60.6% 0.25 292.717);
   --color-cx-type-disc-text: oklch(69.9% 0.198 293.541);
-  --color-cx-type-disc-zebra: oklch(49.1% 0.27 292.581);
+  --color-cx-type-disc-zebra: oklch(30% 0.27 292.581);
 
   /* Accent */
   --color-cx-accent-star: oklch(79.5% 0.184 86.047);
@@ -159,31 +159,31 @@
   --color-cx-surface-950: oklch(98.4% 0.003 247.858);
 
   /* Status: Danger */
-  --color-cx-status-danger-icon: oklch(57.7% 0.245 15.225);
+  --color-cx-status-danger-icon: oklch(50.7% 0.245 15.225);
   --color-cx-status-danger-text: oklch(50.5% 0.213 16.252);
-  --color-cx-status-danger-emphasis: oklch(39.6% 0.165 17.864);
+  --color-cx-status-danger-emphasis: oklch(50.6% 0.165 17.864);
   --color-cx-status-danger-badge-bg: oklch(89.2% 0.058 10.001);
   --color-cx-status-danger-badge-text: oklch(39.6% 0.165 17.864);
   --color-cx-status-danger-glow: oklch(71.2% 0.194 13.428);
   --color-cx-status-danger-border: oklch(71.2% 0.194 13.428 / 0.5);
-  --color-cx-status-danger-zebra: oklch(81% 0.117 11.638);
+  --color-cx-status-danger-zebra: oklch(80% 0.117 11.638);
 
   /* Status: Warning */
   --color-cx-status-warning-icon: oklch(68.1% 0.17 80.985);
   --color-cx-status-warning-text: oklch(62.0% 0.162 79.629);
-  --color-cx-status-warning-emphasis: oklch(47.6% 0.141 75.202);
+  --color-cx-status-warning-emphasis: oklch(55.6% 0.141 75.202);
   --color-cx-status-warning-badge-bg: oklch(94.5% 0.129 101.54);
   --color-cx-status-warning-badge-text: oklch(47.6% 0.141 75.202);
   --color-cx-status-warning-glow: oklch(85.2% 0.179 91.936);
   --color-cx-status-warning-border: oklch(85.2% 0.179 91.936 / 0.5);
-  --color-cx-status-warning-zebra: oklch(90.5% 0.182 98.111);
+  --color-cx-status-warning-zebra: oklch(85% 0.182 98.111);
 
   /* Status: Success */
-  --color-cx-status-success-icon: oklch(62.7% 0.194 149.214);
+  --color-cx-status-success-icon: oklch(50.7% 0.194 149.214);
   --color-cx-status-success-text: oklch(52.7% 0.174 150.069);
-  --color-cx-status-success-badge-bg: oklch(92.5% 0.14 155.995);
+  --color-cx-status-success-badge-bg: oklch(90.5% 0.14 155.995);
   --color-cx-status-success-badge-text: oklch(39.2% 0.125 153.274);
-  --color-cx-status-success-zebra: oklch(87.1% 0.15 154.449);
+  --color-cx-status-success-zebra: oklch(80% 0.15 154.449);
 
   /* Status: Error */
   --color-cx-status-error-text: oklch(50.5% 0.213 16.252);
@@ -191,12 +191,12 @@
   /* Type: Lab */
   --color-cx-type-lab-icon: oklch(54.6% 0.215 262.881);
   --color-cx-type-lab-text: oklch(42.4% 0.199 265.638);
-  --color-cx-type-lab-zebra: oklch(80.9% 0.105 251.813);
+  --color-cx-type-lab-zebra: oklch(85% 0.105 251.813);
 
   /* Type: Discussion */
   --color-cx-type-disc-icon: oklch(53.6% 0.244 292.284);
   --color-cx-type-disc-text: oklch(49.1% 0.27 292.581);
-  --color-cx-type-disc-zebra: oklch(81.1% 0.111 293.571);
+  --color-cx-type-disc-zebra: oklch(85% 0.111 293.571);
 
   /* Accent */
   --color-cx-accent-star: oklch(68.1% 0.17 80.985);
@@ -254,11 +254,31 @@ html {
   background-repeat: repeat;
 }
 
+.bg-zebra-sm-danger,
+.bg-zebra-sm-warning,
+.bg-zebra-sm-success,
+.bg-zebra-sm-lab,
+.bg-zebra-sm-disc {
+  background-image: repeating-linear-gradient(315deg,var(--zebra-color)0,var(--zebra-color)1px,transparent 0,transparent 50%);
+  background-size: 4px 4px;
+  background-position: 0 0;
+  background-repeat: repeat;
+}
 .bg-zebra-sm-danger  { --zebra-color: var(--color-cx-status-danger-zebra); }
 .bg-zebra-sm-warning { --zebra-color: var(--color-cx-status-warning-zebra); }
 .bg-zebra-sm-success { --zebra-color: var(--color-cx-status-success-zebra); }
 .bg-zebra-sm-lab     { --zebra-color: var(--color-cx-type-lab-zebra); }
 .bg-zebra-sm-disc    { --zebra-color: var(--color-cx-type-disc-zebra); }
+
+.select-plain {
+  text-align: center;
+  text-align-last: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.select-plain::-ms-expand {
+  display: none;
+}
 
 .text-sideways {
   writing-mode: vertical-rl;

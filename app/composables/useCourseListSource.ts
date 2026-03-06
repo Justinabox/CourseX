@@ -17,7 +17,7 @@ export function useCourseListSource() {
   const reload = async () => {
     const m = mode.value
     if (m.mode === 'all' || m.mode === 'unknown') {
-      courses.value = await listAllCourses()
+      courses.value = await listAllCourses(termId.value)
       return
     }
     if (m.mode === 'scheduled') {
@@ -29,7 +29,7 @@ export function useCourseListSource() {
       return
     }
     if (m.mode === 'program') {
-      courses.value = await getSchoolCourses(m.school, m.program)
+      courses.value = await getSchoolCourses(termId.value, m.school, m.program)
       return
     }
   }
