@@ -77,11 +77,13 @@ function onHoverPreviewEnter() {
 function onHoverPreviewLeave() { clearHoverPreview() }
 
 function onAddOrRemoveWatchlist() {
-  const { code, title } = props.details
+  const { code, title, description, ges } = props.details
   if (isInWatchlist.value) {
     watchlistStore.removeFromWatchlist(code, title)
   } else {
-    watchlistStore.upsertWatchlistItem(code, title)
+    watchlistStore.upsertWatchlistItem(code, title, {
+      title, code, description, sections: [], ges,
+    })
   }
 }
 </script>

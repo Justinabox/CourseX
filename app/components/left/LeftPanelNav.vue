@@ -34,8 +34,10 @@ import { useScheduleStore } from '@/stores/schedule'
 import { useTermId } from '@/composables/useTermId'
 import { useWatchlistStore } from '@/stores/watchlist'
 
-const { totalScheduledUnits, totalScheduledUnitsLabel } = useScheduleStore()
+const scheduleStore = useScheduleStore()
 const { termId } = useTermId()
 const watchlistStore = useWatchlistStore()
 const totalWatchlistCourses = computed(() => watchlistStore.totalWatchlistCourses)
+const totalScheduledUnits = computed(() => scheduleStore.totalScheduledUnits)
+const totalScheduledUnitsLabel = computed(() => scheduleStore.totalScheduledUnitsLabel)
 </script>

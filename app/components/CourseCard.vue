@@ -153,7 +153,13 @@ function onWatchlistToggle() {
   if (isInWatchlist.value) {
     watchlistStore.removeFromWatchlist(props.code, props.title)
   } else {
-    watchlistStore.upsertWatchlistItem(props.code, props.title)
+    watchlistStore.upsertWatchlistItem(props.code, props.title, {
+      title: props.title,
+      code: props.code,
+      description: props.description,
+      sections: props.sections,
+      ges: props.ges,
+    })
   }
 }
 

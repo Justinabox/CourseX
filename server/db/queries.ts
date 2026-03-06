@@ -390,3 +390,211 @@ function deduplicateSchedules(schedules: any[]): any[] {
   }
   return result
 }
+
+// ─── Hydrated user data queries ───────────────────────────────────────────
+
+export async function queryWatchlistCourses(termCode: string, courseKeys: string[]) {
+  if (courseKeys.length === 0) return []
+  validateTermCode(termCode)
+  const sql = useSql()
+
+  // Extract course codes from keys (format: "CODE::TITLE")
+  const courseCodes = courseKeys
+    .map((k) => k.split('::')[0])
+    .filter(Boolean)
+
+  if (courseCodes.length === 0) return []
+
+  const rows = await sql`
+    SELECT
+      c.id,
+      c.title,
+      c.description,
+      c.dupe_credit_comment,
+      c.ges::text[] as ges,
+      to_jsonb(c.prerequisites) as prerequisites,
+      to_jsonb(c.corequisites) as corequisites,
+      to_jsonb(c.registrar_code) as registrar_code,
+      json_agg(DISTINCT jsonb_build_object(
+        'sectionId',       s.id::text,
+        'type',            s.type::text,
+        'enrolled',        s.registered_seat,
+        'capacity',        s.total_seat,
+        'waitlisted',      s.waitlisted_seat,
+        'units',           s.units,
+        'schedules',       to_jsonb(s.schedules),
+        'hasDClearance',   s.d_clearance,
+        'isCancelled',     s.is_cancelled
+      )) as sections,
+      json_agg(DISTINCT jsonb_build_object(
+        'sectionId', si.section_id::text,
+        'name',      si.instructor_name
+      )) FILTER (WHERE si.instructor_name IS NOT NULL) as section_instructors
+    FROM ${sql.unsafe(`courses_${termCode}`)} c
+    JOIN ${sql.unsafe(`course_sections_${termCode}`)} cs ON cs.course_id = c.id
+    JOIN ${sql.unsafe(`sections_${termCode}`)} s ON s.id = cs.section_id
+    LEFT JOIN ${sql.unsafe(`section_instructors_${termCode}`)} si ON si.section_id = s.id
+    WHERE s.is_cancelled = false
+      AND c.id = ANY(${courseCodes})
+    GROUP BY c.id
+    ORDER BY c.id
+  `
+
+  return rows.map(mapCourseRow)
+}
+
+export function hydrateScheduleCourses(sectionDetails: any[]) {
+  const byKey: Record<string, any> = {}
+  for (const d of sectionDetails) {
+    const code = d.code
+    const title = (d.title || '').toString().trim()
+    const titleUpper = title.toUpperCase()
+    const key = `${code}::${titleUpper}`
+
+    if (!byKey[key]) {
+      byKey[key] = {
+        title,
+        code: d.code,
+        description: d.description || '',
+        ges: d.ges || [],
+        sections: [],
+      }
+    }
+
+    byKey[key].sections.push({
+      sectionId: d.sectionId,
+      instructors: d.instructors || [],
+      enrolled: d.enrolled ?? 0,
+      capacity: d.capacity ?? 0,
+      waitlisted: d.waitlisted ?? 0,
+      schedules: d.schedules || [],
+      hasDClearance: d.dClearance ?? false,
+      hasPrerequisites: (d.prerequisites?.length ?? 0) > 0,
+      hasDuplicatedCredit: !!d.dupeCreditComment,
+      units: d.units || [],
+      type: d.type ?? null,
+      isCancelled: d.isCancelled ?? false,
+    })
+  }
+  return Object.values(byKey)
+}
+
+// ─── User management ──────────────────────────────────────────────────────
+
+export async function upsertUser(googleId: string, email: string, name: string, picture: string | null): Promise<number> {
+  const sql = useSql()
+  const rows = await sql`
+    INSERT INTO users (google_id, email, name, picture)
+    VALUES (${googleId}, ${email}, ${name}, ${picture})
+    ON CONFLICT (google_id) DO UPDATE SET
+      name = EXCLUDED.name,
+      picture = EXCLUDED.picture,
+      last_login_at = now()
+    RETURNING id
+  `
+  return rows[0].id
+}
+
+export async function getUserIdByGoogleId(googleId: string): Promise<number | null> {
+  const sql = useSql()
+  const rows = await sql`SELECT id FROM users WHERE google_id = ${googleId} LIMIT 1`
+  return rows.length > 0 ? rows[0].id : null
+}
+
+// ─── Watchlist CRUD ───────────────────────────────────────────────────────
+
+export async function getWatchlistKeys(userId: number, termCode: string): Promise<string[]> {
+  const sql = useSql()
+  const rows = await sql`
+    SELECT course_keys FROM user_watchlist
+    WHERE user_id = ${userId} AND term_code = ${termCode}
+  `
+  return rows.length > 0 ? (rows[0].course_keys || []) : []
+}
+
+export async function replaceWatchlist(userId: number, termCode: string, keys: string[]): Promise<string[]> {
+  const sql = useSql()
+  const rows = await sql`
+    INSERT INTO user_watchlist (user_id, term_code, course_keys, updated_at)
+    VALUES (${userId}, ${termCode}, ${keys}, now())
+    ON CONFLICT (user_id, term_code) DO UPDATE SET
+      course_keys = EXCLUDED.course_keys,
+      updated_at = now()
+    RETURNING course_keys
+  `
+  return rows[0].course_keys || []
+}
+
+export async function addWatchlistKey(userId: number, termCode: string, key: string): Promise<string[]> {
+  const sql = useSql()
+  const rows = await sql`
+    INSERT INTO user_watchlist (user_id, term_code, course_keys, updated_at)
+    VALUES (${userId}, ${termCode}, ARRAY[${key}]::text[], now())
+    ON CONFLICT (user_id, term_code) DO UPDATE SET
+      course_keys = array_append(array_remove(user_watchlist.course_keys, ${key}), ${key}),
+      updated_at = now()
+    RETURNING course_keys
+  `
+  return rows[0].course_keys || []
+}
+
+export async function removeWatchlistKey(userId: number, termCode: string, key: string): Promise<string[]> {
+  const sql = useSql()
+  const rows = await sql`
+    UPDATE user_watchlist SET
+      course_keys = array_remove(course_keys, ${key}),
+      updated_at = now()
+    WHERE user_id = ${userId} AND term_code = ${termCode}
+    RETURNING course_keys
+  `
+  return rows.length > 0 ? (rows[0].course_keys || []) : []
+}
+
+// ─── Schedule CRUD ────────────────────────────────────────────────────────
+
+export async function getScheduleSectionIds(userId: number, termCode: string): Promise<number[]> {
+  const sql = useSql()
+  const rows = await sql`
+    SELECT section_ids FROM user_schedule
+    WHERE user_id = ${userId} AND term_code = ${termCode}
+  `
+  return rows.length > 0 ? (rows[0].section_ids || []) : []
+}
+
+export async function replaceSchedule(userId: number, termCode: string, sectionIds: number[]): Promise<number[]> {
+  const sql = useSql()
+  const rows = await sql`
+    INSERT INTO user_schedule (user_id, term_code, section_ids, updated_at)
+    VALUES (${userId}, ${termCode}, ${sectionIds}, now())
+    ON CONFLICT (user_id, term_code) DO UPDATE SET
+      section_ids = EXCLUDED.section_ids,
+      updated_at = now()
+    RETURNING section_ids
+  `
+  return rows[0].section_ids || []
+}
+
+export async function addScheduleSectionId(userId: number, termCode: string, sectionId: number): Promise<number[]> {
+  const sql = useSql()
+  const rows = await sql`
+    INSERT INTO user_schedule (user_id, term_code, section_ids, updated_at)
+    VALUES (${userId}, ${termCode}, ARRAY[${sectionId}]::integer[], now())
+    ON CONFLICT (user_id, term_code) DO UPDATE SET
+      section_ids = array_append(array_remove(user_schedule.section_ids, ${sectionId}), ${sectionId}),
+      updated_at = now()
+    RETURNING section_ids
+  `
+  return rows[0].section_ids || []
+}
+
+export async function removeScheduleSectionId(userId: number, termCode: string, sectionId: number): Promise<number[]> {
+  const sql = useSql()
+  const rows = await sql`
+    UPDATE user_schedule SET
+      section_ids = array_remove(section_ids, ${sectionId}),
+      updated_at = now()
+    WHERE user_id = ${userId} AND term_code = ${termCode}
+    RETURNING section_ids
+  `
+  return rows.length > 0 ? (rows[0].section_ids || []) : []
+}

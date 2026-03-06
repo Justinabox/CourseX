@@ -1,3 +1,5 @@
+import { upsertUser } from '~~/server/db/queries'
+
 export default defineOAuthGoogleEventHandler({
   config: {
     scope: ['openid', 'email', 'profile'],
@@ -7,6 +9,8 @@ export default defineOAuthGoogleEventHandler({
     if (!email.endsWith('@usc.edu') && !/@[\w.-]+\.usc\.edu$/.test(email)) {
       return sendRedirect(event, '/login?error=unauthorized')
     }
+
+    await upsertUser(user.sub, email, user.name || '', user.picture || null)
 
     await setUserSession(event, {
       user: {

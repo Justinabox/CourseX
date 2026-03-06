@@ -7,7 +7,7 @@ import { useRouteMode, type RouteMode } from '@/composables/useRouteMode'
 import { useWatchlistStore } from '@/stores/watchlist'
 
 export function useCourseListSource() {
-  const { scheduledCourses } = useScheduleStore()
+  const scheduleStore = useScheduleStore()
   const { mode, scopeKey } = useRouteMode()
   const { termId } = useTermId()
   const watchlistStore = useWatchlistStore()
@@ -21,7 +21,7 @@ export function useCourseListSource() {
       return
     }
     if (m.mode === 'scheduled') {
-      courses.value = [...scheduledCourses.value]
+      courses.value = [...(scheduleStore.scheduledCourses || [])]
       return
     }
     if (m.mode === 'watchlist') {
@@ -34,14 +34,12 @@ export function useCourseListSource() {
     }
   }
 
-  // Derive a stable "reload key" that only changes when we need to re-fetch the list,
-  // not when the user selects a course/section within the same view.
   const reloadKey = computed(() => {
     const m = mode.value
     const t = termId.value
     if (m.mode === 'program') return `${t}:program:${m.school}:${m.program}`
-    if (m.mode === 'scheduled') return `${t}:scheduled:${scheduledCourses.value.length}`
-    if (m.mode === 'watchlist') return `${t}:watchlist:${watchlistStore.watchlistCourses.length}`
+    if (m.mode === 'scheduled') return `${t}:scheduled:${scheduleStore.scheduledCourses?.length ?? 0}`
+    if (m.mode === 'watchlist') return `${t}:watchlist:${watchlistStore.watchlistCourses?.length ?? 0}`
     return `${t}:${m.mode}`
   })
 
