@@ -1,15 +1,20 @@
+import type { Schedule, GECode, CourseGroup, CourseCode, DayCode, SectionMode, Restriction } from '@/types/db'
+
+export type { Schedule, GECode, CourseGroup, CourseCode, DayCode, SectionMode, Restriction }
+
 export type UICourseSection = {
   sectionId: string
   instructors: string[]
   enrolled: number
   capacity: number
-  schedule: string
-  location: string
+  waitlisted: number
+  schedules: Schedule[]
   hasDClearance: boolean
   hasPrerequisites: boolean
   hasDuplicatedCredit: boolean
-  units?: number | null
-  type?: string | null
+  units: number[]
+  type: SectionMode | null
+  isCancelled: boolean
 }
 
 export type UICourse = {
@@ -17,45 +22,30 @@ export type UICourse = {
   code: string
   description: string
   sections: UICourseSection[]
-  ge?: string[]
-}
-
-export type RawSection = {
-  sectionCode?: string | null
-  instructors?: string[]
-  units?: number | string | null
-  total?: number | null
-  registered?: number | null
-  location?: string | null
-  time?: string | null
-  duplicatedCredits?: string[]
-  prerequisites?: string[]
-  dClearance?: boolean
-  type?: string | null
-}
-
-export type RawGroupedCourse = {
-  title?: string
-  description?: string
-  courseCode?: string
-  sections?: RawSection[]
-  GE?: string[]
+  ges: GECode[]
 }
 
 export type CourseDetails = {
+  sectionId?: string
   title: string
   code: string
   description: string
   instructors: string[]
-  units?: number | null
+  units: number[]
   enrolled: number
   capacity: number
-  times: string[]
-  locations: string[]
-  duplicatedCredits: string[]
-  prerequisites: string[]
+  waitlisted: number
+  schedules: Schedule[]
+  dupeCreditComment: string | null
+  prerequisites: CourseGroup[]
+  corequisites: CourseGroup[]
+  restrictions: Restriction[]
+  note: string | null
+  recomPrepComment: string | null
   dClearance: boolean
-  type: string | null
+  type: SectionMode | null
+  ges: GECode[]
+  isCancelled: boolean
 }
 
 // Shared app-level types (centralized)

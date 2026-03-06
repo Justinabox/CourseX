@@ -14,6 +14,16 @@
           <span class="text-md">All Courses</span>
         </NuxtLink>
 
+        <NuxtLink :to="`/course/${termId}/watchlist`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
+          <div class="flex gap-2 items-center shrink-0">
+            <Icon name="uil:star" class="h-5 w-5"/>
+            <span class="text-md">Watchlist</span>
+          </div>
+          <div class="text-xs font-semibold text-cx-text-weak-muted">
+            {{ totalWatchlistCourses }}
+          </div>
+        </NuxtLink>
+
         <NuxtLink :to="`/course/${termId}/scheduled`" class="w-full rounded-md flex justify-between items-center gap-2 hover:bg-cx-surface-800/40 px-1 py-1 rounded">
           <div class="flex gap-2 items-center shrink-0">
             <Icon name="uil:calendar" class="h-5 w-5"/>
@@ -78,8 +88,9 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, onActivated, onDeactivated, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { listSchoolAndPrograms } from '@/composables/useAPI'
-import { useStore } from '@/composables/useStore'
+import { useScheduleStore } from '@/stores/schedule'
 import { useTermId } from '@/composables/useTermId'
+import { useWatchlistStore } from '@/stores/watchlist'
  
 
 type Program = {
@@ -98,8 +109,10 @@ const query = ref('')
 const runtimeConfig = useRuntimeConfig()
 const commitSha = computed(() => runtimeConfig.public.WORKERS_CI_COMMIT_SHA || 'dev')
 
-const { totalScheduledUnits, totalScheduledUnitsLabel } = useStore()
-const { termId } = useTermId()
+const { totalScheduledUnits, totalScheduledUnitsLabel } = useScheduleStore()
+  const { termId } = useTermId()
+  const watchlistStore = useWatchlistStore()
+  const totalWatchlistCourses = computed(() => watchlistStore.totalWatchlistCourses)
 
 // Persist left panel scroll position
 const leftScrollTop = useState<number>('ui:scroll:left', () => 0)
@@ -127,11 +140,15 @@ const restoreLeftScroll = async () => {
   })
 }
 
-// Temporary seed data; replace with real data source later
 const schools = ref<School[]>([])
 onMounted(async () => {
-  const data = await listSchoolAndPrograms()
-  schools.value = data.schools
+  const tree = await listSchoolAndPrograms()
+  // API returns Record<prefix, { name, programs }> — convert to array
+  schools.value = Object.entries(tree).map(([prefix, val]: [string, any]) => ({
+    prefix,
+    name: val.name,
+    programs: (val.programs || []).map((p: any) => ({ prefix: p.prefix, name: p.name })),
+  }))
   await restoreLeftScroll()
   const el = leftScrollRef.value
   if (el) el.addEventListener('scroll', onLeftScroll, { passive: true })

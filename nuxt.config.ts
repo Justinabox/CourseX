@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    databaseUrl: process.env.DATABASE_URL || '',
     public: {
       WORKERS_CI_COMMIT_SHA: process.env.WORKERS_CI_COMMIT_SHA || '',
     },

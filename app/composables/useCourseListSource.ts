@@ -1,14 +1,16 @@
-import { ref, computed, watchEffect } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { Ref } from 'vue'
 import { listAllCourses, getSchoolCourses, type UICourse } from '@/composables/useAPI'
 import { useTermId } from '@/composables/useTermId'
-import { useStore } from '@/composables/useStore'
+import { useScheduleStore } from '@/stores/schedule'
 import { useRouteMode, type RouteMode } from '@/composables/useRouteMode'
+import { useWatchlistStore } from '@/stores/watchlist'
 
 export function useCourseListSource() {
-  const { scheduledCourses } = useStore()
+  const { scheduledCourses } = useScheduleStore()
   const { mode, scopeKey } = useRouteMode()
   const { termId } = useTermId()
+  const watchlistStore = useWatchlistStore()
 
   const courses: Ref<UICourse[]> = ref([])
 
@@ -22,23 +24,28 @@ export function useCourseListSource() {
       courses.value = [...scheduledCourses.value]
       return
     }
+    if (m.mode === 'watchlist') {
+      courses.value = [...watchlistStore.watchlistCourses]
+      return
+    }
     if (m.mode === 'program') {
       courses.value = await getSchoolCourses(m.school, m.program)
       return
     }
   }
 
-  watchEffect(() => {
+  // Derive a stable "reload key" that only changes when we need to re-fetch the list,
+  // not when the user selects a course/section within the same view.
+  const reloadKey = computed(() => {
     const m = mode.value
-    // react to scheduled list changes only when in scheduled mode
-    const scheduleVersion = m.mode === 'scheduled' ? (scheduledCourses.value.length) : 0
     const t = termId.value
-    void scheduleVersion // dependency capture
-    void t
-    reload()
+    if (m.mode === 'program') return `${t}:program:${m.school}:${m.program}`
+    if (m.mode === 'scheduled') return `${t}:scheduled:${scheduledCourses.value.length}`
+    if (m.mode === 'watchlist') return `${t}:watchlist:${watchlistStore.watchlistCourses.length}`
+    return `${t}:${m.mode}`
   })
 
-  // no secondary watcher needed; handled in watchEffect above
+  watch(reloadKey, () => { reload() }, { immediate: true })
 
   return {
     courses,
@@ -47,5 +54,3 @@ export function useCourseListSource() {
     scopeKey,
   }
 }
-
-

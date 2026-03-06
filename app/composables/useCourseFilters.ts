@@ -2,9 +2,9 @@ import { computed, reactive, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { UICourse, UICourseSection } from '@/composables/useAPI'
 import type { CourseFiltersState, TriState, EnrollmentFilter } from '@/composables/api/types'
-import { useStore } from '@/composables/useStore'
+import { useScheduleStore } from '@/stores/schedule'
 import { useTermId } from '@/composables/useTermId'
-import { parseUnitsToNumber } from '@/composables/filters/units'
+import { parseUnitsArrayToRange } from '@/composables/filters/units'
 import { normalizeString, normalizeSectionType } from '@/composables/filters/normalize'
 import { courseMatchesSearch } from '@/composables/filters/search'
 import { sectionMatchesEnrollment } from '@/composables/filters/enrollment'
@@ -42,7 +42,7 @@ function someSectionMatches(
 }
 
 export function useCourseFilters(courses?: Ref<UICourse[]>) {
-  const { checkScheduleCollision } = useStore()
+  const { checkScheduleCollision } = useScheduleStore()
   const { termId } = useTermId()
 
   const filters = reactive<CourseFiltersState>({
@@ -66,29 +66,14 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
     const typesSet = new Set((filters.sectionTypes || []).map((t) => normalizeSectionType(t)))
     const hasUnitsFilter = filters.unitsMin != null || filters.unitsMax != null
 
-    // Memoize expensive checks by schedule spec
-    const conflictMemo = new Map<string, boolean>()
-    const scheduleMemo = new Map<string, boolean>()
-
     const hasConflict = (sec: UICourseSection): boolean => {
       if (filters.conflicts === 'any') return false
-      const spec = (sec.schedule || '').toString()
-      if (!spec) return false
-      const cached = conflictMemo.get(spec)
-      if (cached != null) return cached
-      const v = checkScheduleCollision(spec).length > 0
-      conflictMemo.set(spec, v)
-      return v
+      if (!sec.schedules || sec.schedules.length === 0) return false
+      return checkScheduleCollision(sec.schedules).length > 0
     }
 
     const matchesSchedule = (sec: UICourseSection): boolean => {
-      const spec = (sec.schedule || '').toString()
-      const key = spec
-      const cached = scheduleMemo.get(key)
-      if (cached != null) return cached
-      const v = sectionMatchesScheduleFilters(sec, filters.days, filters.timeStartMinutes, filters.timeEndMinutes)
-      scheduleMemo.set(key, v)
-      return v
+      return sectionMatchesScheduleFilters(sec, filters.days, filters.timeStartMinutes, filters.timeEndMinutes)
     }
 
     return (sec: UICourseSection): boolean => {
@@ -104,9 +89,9 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
         if (filters.conflicts === 'exclude' && conf) return false
       }
       if (hasUnitsFilter) {
-        const u = parseUnitsToNumber(sec.units)
-        if (filters.unitsMin != null && u < filters.unitsMin) return false
-        if (filters.unitsMax != null && u > filters.unitsMax) return false
+        const { min, max } = parseUnitsArrayToRange(sec.units)
+        if (filters.unitsMin != null && max < filters.unitsMin) return false
+        if (filters.unitsMax != null && min > filters.unitsMax) return false
       }
       return true
     }
@@ -119,9 +104,9 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
     // If units filter is active, require at least one section to satisfy it (coarse pre-check)
     if (hasUnitsFilter) {
       const anyUnitMatch = sections.some((s) => {
-        const u = parseUnitsToNumber(s.units)
-        if (filters.unitsMin != null && u < filters.unitsMin) return false
-        if (filters.unitsMax != null && u > filters.unitsMax) return false
+        const { min, max } = parseUnitsArrayToRange(s.units)
+        if (filters.unitsMin != null && max < filters.unitsMin) return false
+        if (filters.unitsMax != null && min > filters.unitsMax) return false
         return true
       })
       if (!anyUnitMatch) return []

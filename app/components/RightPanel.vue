@@ -19,6 +19,10 @@
           {{ isInSchedule ? 'Remove from Schedule' : 'Add to Schedule' }}
         </button>
 
+        <button v-if="details" class="text-sm w-fit p-2 rounded-md mb-2 bg-cx-surface-800 hover:bg-cx-surface-700" :class="{ 'text-yellow-500/80 border-yellow-700/50 border-1': isInWatchlist, 'text-cx-text-subtle': !isInWatchlist }" @click="onAddOrRemoveWatchlist">
+          {{ isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist' }}
+        </button>
+
         <div v-if="details" class="flex flex-col gap-1.5 border-y border-cx-border py-4">
           <div class="flex items-center gap-2">
             <Icon name="uil:graduation-cap" class="h-5 w-5 text-cx-text-muted"/>
@@ -45,28 +49,28 @@
             <Icon name="uil:user" class="h-5 w-5" :class="{ 'text-rose-800': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
             <span class="text-sm" :class="{ 'text-rose-700': details.enrolled === details.capacity, 'text-cx-text-subtle': details.enrolled !== details.capacity }">{{ details.enrolled }} / {{ details.capacity }} Students</span>
           </div>
-          <div v-if="details.times.length > 0" class="flex items-center gap-2">
-            <Icon name="uil:clock" class="h-5 w-5 text-cx-text-muted" />
-            <span class="text-sm text-cx-text-subtle">{{ details.times[0] }}</span>
+          <div v-if="detailScheduleLines.length > 0" class="flex items-start gap-2">
+            <Icon name="uil:clock" class="h-5 w-5 text-cx-text-muted shrink-0 mt-0.5" />
+            <div class="flex flex-col">
+              <span v-for="(line, idx) in detailScheduleLines" :key="idx" class="text-sm text-cx-text-subtle">{{ line }}</span>
+            </div>
           </div>
-          <div v-if="details.locations.length > 0" class="flex items-center gap-2">
+          <div v-if="showDetailLocation" class="flex items-center gap-2">
             <Icon name="uil:location-point" class="h-5 w-5 text-cx-text-muted" />
-            <span class="text-sm text-cx-text-subtle">{{ details.locations[0] }}</span>
+            <span class="text-sm text-cx-text-subtle">{{ detailLocation }}</span>
           </div>
         </div>
 
         <div v-if="details" class="flex flex-col gap-2">
-          <div v-if="details.units != null" class="flex items-center gap-2">
+          <div v-if="details.units.length > 0" class="flex items-center gap-2">
             <Icon name="uil:bill" class="h-5 w-5 text-cx-text-muted" />
-            <span class="text-sm text-cx-text-subtle">{{ Number(details.units).toFixed(1) }} units</span>
+            <span class="text-sm text-cx-text-subtle">{{ renderDetailUnits }} units</span>
           </div>
-          
-          <div v-if="details.duplicatedCredits.length > 0" class="flex items-center gap-2">
+
+          <div v-if="details.dupeCreditComment" class="flex items-center gap-2">
             <Icon name="uil:pathfinder" class="h-5 w-5 text-green-500" />
             <span class="text-sm text-green-400">Dupe credit: </span>
-            <div class="flex items-center gap-1">
-              <span v-for="dc in details.duplicatedCredits" :key="dc" class="text-xs bg-green-800 text-green-200 px-1 py-0.5 rounded-md">{{ dc }}</span>
-            </div>
+            <span class="text-xs bg-green-800 text-green-200 px-1 py-0.5 rounded-md">{{ details.dupeCreditComment }}</span>
           </div>
 
           <div v-if="details.dClearance" class="flex items-center gap-2">
@@ -78,7 +82,7 @@
             <Icon name="uil:link" class="h-5 w-5 text-yellow-500" />
             <span class="text-sm text-yellow-400">Pre-requisite: </span>
             <div class="flex items-center gap-1">
-              <span v-for="pr in details.prerequisites" :key="pr" class="text-xs bg-yellow-800 text-yellow-200 px-1 py-0.5 rounded-md">{{ pr }}</span>
+              <span v-for="(group, idx) in details.prerequisites" :key="idx" class="text-xs bg-yellow-800 text-yellow-200 px-1 py-0.5 rounded-md">{{ renderPrereqGroup(group) }}</span>
             </div>
           </div>
 
@@ -109,19 +113,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getCourseDetails, getSectionDetails, type CourseDetails } from '@/composables/useAPI'
 import { useSchedule } from '@/composables/useSchedule'
-import type { ScheduleBlock } from '@/composables/scheduleUtils'
+import { useCalendarDrag } from '@/composables/useCalendarDrag'
 import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
-import { useStore } from '@/composables/useStore'
+import { useUiStore } from '@/stores/ui'
+import { useScheduleStore } from '@/stores/schedule'
 import { useCourseListSource } from '@/composables/useCourseListSource'
-import { useCourseSelection } from '@/composables/useCourseSelection'
 import { useRouteMode } from '@/composables/useRouteMode'
 import ScheduleGrid from '@/components/ScheduleGrid.vue'
 import { useRMPRatings } from '@/composables/useRMPRatings'
+import { resolveInstructorViews, type InstructorView } from '@/composables/useInstructorViews'
+import { useWatchlistStore } from '@/stores/watchlist'
+import { formatDetailScheduleLines, formatCardLocation, formatUnitsOptions, formatPrerequisiteGroup } from '@/composables/api/transforms'
+import type { CourseGroup } from '@/types/db'
 
-const { selectedCourseCode, selectedSectionId, selectCourse } = useCourseSelection()
+const ui = useUiStore()
+const selectedCourseCode = computed(() => ui.selectedCourseCode)
+const selectedSectionId = computed(() => ui.selectedSectionId)
+const selectCourse = (code: string, sectionId: string | null = null) => ui.setSelection(code, sectionId)
 const router = useRouter()
 const { mode } = useCourseListSource()
 const { makeSelectionPath } = useRouteMode()
@@ -153,25 +164,11 @@ watch(
 
 // RateMyProfessors integration
 const { getProfessor } = useRMPRatings()
-type InstructorView = { name: string; rating: number; link: string; isLow: boolean }
 const instructorViews = ref<InstructorView[]>([])
 
 async function updateInstructorViews() {
-  const names = Array.from(new Set((details.value?.instructors || []).filter(Boolean)))
-  if (names.length === 0) {
-    instructorViews.value = []
-    return
-  }
-  const results = await Promise.all(
-    names.map(async (name) => {
-      const prof = await getProfessor(name)
-      const rating = prof && typeof prof.rating === 'number' && !Number.isNaN(prof.rating) ? prof.rating : NaN
-      const link = prof?.link || `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name)}`
-      const isLow = typeof rating === 'number' && !Number.isNaN(rating) ? rating < 3.0 : false
-      return { name, rating, link, isLow } as InstructorView
-    })
-  )
-  instructorViews.value = results
+  const names = details.value?.instructors || []
+  instructorViews.value = await resolveInstructorViews(names, getProfessor)
 }
 watch(
   () => details.value?.instructors,
@@ -181,98 +178,33 @@ watch(
 
 const typeMeta = computed(() => getCourseTypeMeta(details.value?.type))
 
+const detailScheduleLines = computed(() => formatDetailScheduleLines(details.value?.schedules || []))
+// Show location separately only when there's a single schedule (multi-schedule includes location inline)
+const hasMultipleSchedules = computed(() => (details.value?.schedules || []).length > 1)
+const detailLocation = computed(() => formatCardLocation(details.value?.schedules || []))
+const showDetailLocation = computed(() => !hasMultipleSchedules.value && !!detailLocation.value)
+const renderDetailUnits = computed(() => formatUnitsOptions(details.value?.units || []))
+
+function renderPrereqGroup(group: CourseGroup) {
+  return formatPrerequisiteGroup(group)
+}
+
 // Calendar state/hooks
 const {
   blocks,
   previewBlocks,
-  DAY_LABELS,
-  START_MINUTES,
-  END_MINUTES,
-  SLOT_MINUTES,
   addBlock,
   updateBlock,
-  removeBlock,
-  geometryFor,
-  minutesToTime,
-    parseBlocksFromApiSpec,
-    hasCourseSection,
-    removeCourseSection,
-    setHoverPreviewFromString,
-    clearHoverPreview,
+  hasCourseSection,
+  removeCourseSection,
+  setHoverPreviewFromSchedules,
+  clearHoverPreview,
 } = useSchedule()
 
-const { upsertScheduledSection } = useStore()
+const { onDayMouseDown } = useCalendarDrag({ addBlock, updateBlock, blocks })
 
-const dayLabels = DAY_LABELS
-
-const totalRange = END_MINUTES - START_MINUTES
-const hourTicks = computed(() => {
-  const ticks: { topPct: number; label: string }[] = []
-  for (let m = START_MINUTES; m <= END_MINUTES; m += 60) {
-    const topPct = ((m - START_MINUTES) / totalRange) * 100
-    const h = Math.floor(m / 60)
-    const label = `${h.toString().padStart(2, '0')}:00`
-    ticks.push({ topPct, label })
-  }
-  return ticks
-})
-
-function onDayMouseDown(e: MouseEvent, dayIndex: number) {
-  if (!enableManualCalendarSlotCreation.value) return
-  const el = e.currentTarget as HTMLElement
-  const start = eventMinutesInColumn(e, el)
-  isDragging.value = true
-  dragDayIndex.value = dayIndex
-  dragStart.value = start
-  dragCurrent.value = start
-  dragColumnEl.value = el
-  const id = addBlock({ dayIndex, startMinutes: start, endMinutes: start + 5, label: 'New', color: 'rgb(var(--color-green-500-rgb) / 0.25)' })
-  draftBlockId.value = id || null
-  window.addEventListener('mousemove', onWindowMouseMove)
-  window.addEventListener('mouseup', onWindowMouseUp)
-}
-
-function eventMinutesInColumn(e: MouseEvent, columnEl: HTMLElement): number {
-  const rect = columnEl.getBoundingClientRect()
-  const y = e.clientY - rect.top
-  const frac = Math.max(0, Math.min(1, y / Math.max(rect.height, 1)))
-  const minutes = START_MINUTES + Math.round((frac * totalRange) / SLOT_MINUTES) * SLOT_MINUTES
-  return Math.max(START_MINUTES, Math.min(END_MINUTES, minutes))
-}
-
-function onWindowMouseMove(e: MouseEvent) {
-  if (!isDragging.value) return
-  const dayIndex = dragDayIndex.value
-  if (dayIndex == null) return
-  const columnEl = dragColumnEl.value
-  if (!columnEl) return
-  const minutes = eventMinutesInColumn(e, columnEl)
-  dragCurrent.value = minutes
-  const id = draftBlockId.value
-  if (id) updateBlock(id, { startMinutes: Math.min(dragStart.value, dragCurrent.value), endMinutes: Math.max(dragStart.value, dragCurrent.value) })
-}
-
-function onWindowMouseUp() {
-  if (!isDragging.value) return
-  isDragging.value = false
-  window.removeEventListener('mousemove', onWindowMouseMove)
-  window.removeEventListener('mouseup', onWindowMouseUp)
-  const id = draftBlockId.value
-  if (id) {
-    const b = blocks.value.find((x) => x.id === id)
-    if (b && b.endMinutes - b.startMinutes < SLOT_MINUTES) updateBlock(id, { endMinutes: b.startMinutes + SLOT_MINUTES })
-  }
-  draftBlockId.value = null
-  dragColumnEl.value = null
-}
-
-const enableManualCalendarSlotCreation = ref(false)
-const isDragging = ref(false)
-const dragDayIndex = ref<number | null>(null)
-const dragStart = ref(START_MINUTES)
-const dragCurrent = ref(START_MINUTES)
-const draftBlockId = ref<string | null>(null)
-const dragColumnEl = ref<HTMLElement | null>(null)
+const { upsertScheduledSection } = useScheduleStore()
+  const watchlistStore = useWatchlistStore()
 
 function onBlockClick(id: string) {
   const target = blocks.value.find((b) => b.id === id)
@@ -292,6 +224,13 @@ const isInSchedule = computed(() => {
   return hasCourseSection(courseCode, sectionId)
 })
 
+const isInWatchlist = computed(() => {
+  if (!details.value) return false
+  const courseCode = details.value.code
+  const title = details.value.title
+  return watchlistStore.hasInWatchlist(courseCode, title)
+})
+
 function onAddOrRemove() {
   clearHoverPreview()
   if (!details.value) return
@@ -306,25 +245,37 @@ function onAddOrRemove() {
     instructors: Array.from(new Set(details.value.instructors || [])),
     enrolled: Number(details.value.enrolled || 0),
     capacity: Number(details.value.capacity || 0),
-    schedule: (details.value.times || []).join('; '),
-    location: (details.value.locations || [])[0] || '',
+    waitlisted: details.value.waitlisted ?? 0,
+    schedules: details.value.schedules,
     hasDClearance: !!details.value.dClearance,
-    hasPrerequisites: (details.value.prerequisites || []).length > 0,
-    hasDuplicatedCredit: (details.value.duplicatedCredits || []).length > 0,
-    units: details.value.units ?? null,
+    hasPrerequisites: details.value.prerequisites.length > 0,
+    hasDuplicatedCredit: !!details.value.dupeCreditComment,
+    units: details.value.units,
     type: details.value.type ?? null,
+    isCancelled: details.value.isCancelled ?? false,
   }
   upsertScheduledSection({ code: details.value.code, title: details.value.title, description: details.value.description }, section)
 }
 
 function onHoverPreviewEnter() {
   try {
-    if (!details.value) return
-    const spec = (details.value.times || []).join('; ').trim()
-    if (!spec) return
-    setHoverPreviewFromString(spec, details.value.title, details.value.code)
+    if (!details.value || details.value.schedules.length === 0) return
+    setHoverPreviewFromSchedules(details.value.schedules, details.value.title, details.value.code)
   } catch {}
 }
 
 function onHoverPreviewLeave() { clearHoverPreview() }
+
+function onAddOrRemoveWatchlist() {
+  if (!details.value) return
+  const code = details.value.code
+  const title = details.value.title
+
+  if (isInWatchlist.value) {
+    watchlistStore.removeFromWatchlist(code, title)
+    return
+  }
+
+  watchlistStore.upsertWatchlistItem(code, title)
+}
 </script>

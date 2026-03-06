@@ -29,31 +29,34 @@
     <div ref="scrollContainerEl" class="w-full grow overflow-y-auto overflow-x-hidden overscroll-auto min-w-0 hide-scrollbar-bg">
       <div class="w-full flex flex-col min-w-0">
         <div :style="{ height: topPadding + 'px' }"></div>
-        <template v-for="(course, i) in visibleCourses" :key="visibleKey(course, i)">
-          <div class="pb-3" :ref="(el) => onRowRef(el, startIndex + i)" :data-row-index="startIndex + i">
-            <CourseCard
-              data-card
-              :title="course.title"
-              :code="course.code"
-              :description="course.description"
-              :sections="course.sections"
-              :ge="(course as any).ge || []"
-              @section-click="(sid) => onSectionClick(course.code, sid)"
-            />
-          </div>
-        </template>
+        <div
+          v-for="course in visibleItems"
+          :key="`${course.code}::${course.title}`"
+          class="pb-3"
+          :ref="(el) => onRowMeasure(el, `${course.code}::${course.title}`)"
+        >
+          <CourseCard
+            data-card
+            :title="course.title"
+            :code="course.code"
+            :description="course.description"
+            :sections="course.sections"
+            :ges="course.ges"
+            @section-click="(sid) => onSectionClick(course.code, sid)"
+          />
+        </div>
         <div :style="{ height: bottomPadding + 'px' }"></div>
       </div>
     </div>
-    
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import { computed, onMounted, ref, onBeforeUnmount } from 'vue'
 import { type UICourse } from '@/composables/useAPI'
 import { useCourseFilters } from '@/composables/useCourseFilters'
-import { useCourseSelection } from '@/composables/useCourseSelection'
+import { useUiStore } from '@/stores/ui'
 import { useCourseListSource } from '@/composables/useCourseListSource'
 import { useVariableVirtualList } from '@/composables/useVariableVirtualList'
 import { useScrollMemory } from '@/composables/useScrollMemory'
@@ -85,16 +88,14 @@ const setConflictsAny = () => { filters.conflicts = 'any' }
 // Enrollment toggle (any <-> only-open)
 const toggleEnrollmentOpenOnly = () => { filters.enrollment = filters.enrollment === 'only-open' ? 'any' : 'only-open' }
 const setEnrollmentAny = () => { filters.enrollment = 'any' }
+
 // Variable-height virtualization with key-based heights
 const {
   containerRef: vContainerRef,
-  startIndex,
-  endIndex,
   topPadding,
   bottomPadding,
   visibleItems,
-  onRowRef,
-  updateViewport,
+  onRowMeasure,
   scheduleUpdateViewport,
 } = useVariableVirtualList<UICourse>({
   items: filteredCourses,
@@ -105,8 +106,6 @@ const {
 // Scroll persistence
 const { containerRef: sContainerRef } = useScrollMemory(() => scopeKey.value)
 const scrollContainerEl = ref<HTMLElement | null>(null)
-
-const visibleCourses = computed(() => visibleItems.value)
 
 onMounted(() => {
   const container = scrollContainerEl.value
@@ -125,12 +124,8 @@ onBeforeUnmount(() => {
   }
 })
 
-watch(filteredCourses, () => {
-  nextTick(scheduleUpdateViewport)
-})
-
 // Click to navigate
-const { selectCourse } = useCourseSelection()
+const { setSelection: selectCourse } = useUiStore()
 const { makeSelectionPath } = useRouteMode()
 
 const onSectionClick = (courseCode: string, sectionId: string) => {
@@ -138,8 +133,6 @@ const onSectionClick = (courseCode: string, sectionId: string) => {
   selectCourse(courseCode, sectionId || null)
   router.push(makeSelectionPath(parsed, courseCode, sectionId || 'section'))
 }
-
-const visibleKey = (course: UICourse, i: number) => `${course.code}::${course.title}`
 </script>
 
 <style scoped>

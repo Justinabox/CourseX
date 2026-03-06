@@ -22,6 +22,17 @@
           </div>
         </div>
         <span class="text-sm truncate block flex-1 min-w-0 max-w-full">{{ title }}</span>
+        <span
+          @click.stop="onWatchlistToggle"
+          :title="isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'"
+          class="shrink-0 hover:scale-110 transition-transform cursor-pointer"
+        >
+          <Icon
+            name="material-symbols-light:kid-star"
+            class="h-4 w-4 transition-colors"
+            :class="starIconClass"
+          />
+        </span>
         <span class="text-xs text-cx-text-secondary font-semibold shrink-0 ml-auto">{{ code }}</span>
       </div>
       <span class="text-xs text-cx-text-secondary line-clamp-2">{{ description }}</span>
@@ -55,9 +66,9 @@
             :class="section.hasDuplicatedCredit ? 'bg-zebra-sm-green text-green-500' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
           >
             C
-          </span> 
+          </span>
         </div>
-        
+
         <!-- Section Attributes -->
         <div class="flex flex-col gap-1 w-full justify-center" :class="sectionClassFor(section)">
           <div class="flex items-center gap-2 justify-between">
@@ -90,12 +101,12 @@
           <div class="flex items-center gap-2 justify-between">
             <div class="flex items-center gap-1">
               <Icon name="uil:clock" class="h-4 w-4 text-cx-text-muted" :class="scheduleCollisionClassFor(section, 'icon')" />
-              <span class="text-xs text-cx-text-secondary line-clamp-1" :class="scheduleCollisionClassFor(section, 'text')">{{ section.schedule }}</span>
+              <span class="text-xs text-cx-text-secondary line-clamp-1" :class="scheduleCollisionClassFor(section, 'text')">{{ renderSchedule(section) }}</span>
             </div>
 
             <div class="flex items-center gap-1">
               <Icon name="uil:location-point" class="h-4 w-4 text-cx-text-muted" />
-              <span class="text-xs text-cx-text-secondary font-semibold line-clamp-1">{{ section.location }}</span>
+              <span class="text-xs text-cx-text-secondary font-semibold line-clamp-1">{{ renderLocation(section) }}</span>
             </div>
           </div>
         </div>
@@ -116,10 +127,13 @@
 
 <script setup lang="ts">
 import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
-import type { UICourse, UICourseSection } from '@/composables/useAPI'
+import type { UICourseSection, GECode } from '@/composables/useAPI'
 import { useSchedule } from '@/composables/useSchedule'
-import { useStore } from '@/composables/useStore'
+import { useScheduleStore } from '@/stores/schedule'
 import { useRMPRatings } from '@/composables/useRMPRatings'
+import { resolveInstructorViews, type InstructorView } from '@/composables/useInstructorViews'
+import { useWatchlistStore } from '@/stores/watchlist'
+import { formatCardSchedule, formatCardLocation, formatUnitsRange } from '@/composables/api/transforms'
 
 defineEmits(['section-click'])
 
@@ -128,13 +142,37 @@ const props = defineProps<{
   code: string
   description: string
   sections: UICourseSection[]
-  ge?: string[]
+  ges: GECode[]
 }>()
 
-const { checkScheduleCollision } = useStore()
+const { checkScheduleCollision } = useScheduleStore()
+  const watchlistStore = useWatchlistStore()
+  const isInWatchlist = computed(() => watchlistStore.hasInWatchlist(props.code, props.title))
+
+function onWatchlistToggle() {
+  if (isInWatchlist.value) {
+    watchlistStore.removeFromWatchlist(props.code, props.title)
+  } else {
+    watchlistStore.upsertWatchlistItem(props.code, props.title)
+  }
+}
+
+const starIconClass = computed(() =>
+  isInWatchlist.value
+    ? 'text-yellow-500 font-bold'
+    : 'text-cx-text-weak-muted opacity-50'
+)
 
 const isGESM = computed(() => (props.code || '').toUpperCase().startsWith('GESM'))
-const geLetters = computed(() => Array.from(new Set(props.ge || [])).filter(Boolean))
+const geLetters = computed(() => Array.from(new Set(props.ges || [])).filter(Boolean))
+
+function renderSchedule(section: UICourseSection) {
+  return formatCardSchedule(section.schedules) || 'TBA'
+}
+
+function renderLocation(section: UICourseSection) {
+  return formatCardLocation(section.schedules) || 'TBA'
+}
 
 function occupancyClassFor(section: UICourseSection, type: 'icon' | 'text') {
   const isFull = (section.enrolled || 0) >= (section.capacity || 0)
@@ -143,23 +181,16 @@ function occupancyClassFor(section: UICourseSection, type: 'icon' | 'text') {
 }
 
 function scheduleCollisionClassFor(section: UICourseSection, type: 'icon' | 'text') {
-  const isColliding = checkScheduleCollision(section.schedule).length > 0
+  const isColliding = checkScheduleCollision(section.schedules).length > 0
   if (type === 'icon') return isColliding ? 'text-yellow-700' : 'text-cx-text-muted'
   else if (type === 'text') return isColliding ? 'decoration-yellow-700 text-yellow-700 underline decoration-1' : 'text-cx-text-secondary font-semibold'
 }
 
 function sectionClassFor(section: UICourseSection) {
   const isFull = (section.enrolled || 0) >= (section.capacity || 0)
-  const isColliding = checkScheduleCollision(section.schedule).length > 0
-
+  const isColliding = checkScheduleCollision(section.schedules).length > 0
   if (isFull || isColliding) return 'bg-dotted'
   else return ''
-}
-
-function sectionUnitsToRender(section: UICourseSection) {
-  const value = section.units
-  if (value == null) return ''
-  return Number(value).toFixed(1)
 }
 
 function sectionMeta(section: UICourseSection) {
@@ -173,18 +204,16 @@ function sectionTypeMetaClass(section: UICourseSection) {
 
 function sectionTypeLabel(section: UICourseSection) {
   const meta = sectionMeta(section)
-  return meta ? meta.cardLabel : sectionUnitsToRender(section)
+  return meta ? meta.cardLabel : formatUnitsRange(section.units)
 }
 
 function renderInstructors(section: UICourseSection) {
-  const list = (section as any).instructors as string[] | undefined
-  if (list && list.length > 0) return list.join(', ')
+  if (section.instructors.length > 0) return section.instructors.join(', ')
   return 'TBA'
 }
 
 // RMP integration per section
 const { getProfessor } = useRMPRatings()
-type InstructorView = { name: string; rating: number; link: string; isLow: boolean }
 const instructorViewsBySection = reactive<Record<string, InstructorView[]>>({})
 
 function instructorViewsFor(sectionId: string | undefined): InstructorView[] {
@@ -196,22 +225,7 @@ async function ensureSectionInstructorViews(section: UICourseSection) {
   const key = section.sectionId
   if (!key) return
   if (instructorViewsBySection[key]) return
-  const rawList = (((section as any).instructors || []) as unknown[]).filter((x): x is string => typeof x === 'string')
-  const names: string[] = Array.from(new Set<string>(rawList))
-  if (names.length === 0) {
-    instructorViewsBySection[key] = []
-    return
-  }
-  const results = await Promise.all(
-    names.map(async (name: string) => {
-      const prof = await getProfessor(name)
-      const rating = prof && typeof prof.rating === 'number' && !Number.isNaN(prof.rating) ? prof.rating : NaN
-      const link = prof?.link || `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name)}`
-      const isLow = typeof rating === 'number' && !Number.isNaN(rating) ? rating < 3.0 : false
-      return { name, rating, link, isLow } as InstructorView
-    })
-  )
-  instructorViewsBySection[key] = results
+  instructorViewsBySection[key] = await resolveInstructorViews(section.instructors, getProfessor)
 }
 
 watch(
@@ -225,10 +239,10 @@ watch(
 )
 
 // Hover preview per section
-const { setHoverPreviewFromString, clearHoverPreview } = useSchedule()
+const { setHoverPreviewFromSchedules, clearHoverPreview } = useSchedule()
 function onSectionHoverEnter(section: UICourseSection) {
-  if (!section.schedule) return
-  setHoverPreviewFromString(section.schedule, props.title, props.code)
+  if (!section.schedules || section.schedules.length === 0) return
+  setHoverPreviewFromSchedules(section.schedules, props.title, props.code)
 }
 function onSectionHoverLeave() {
   clearHoverPreview()
@@ -237,4 +251,3 @@ function onSectionHoverLeave() {
 
 <style scoped>
 </style>
-

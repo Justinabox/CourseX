@@ -1,15 +1,16 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useStore } from '@/composables/useStore'
+import { useUiStore } from '@/stores/ui'
+import { useScheduleStore } from '@/stores/schedule'
+import type { Schedule } from '@/types/db'
 import {
+  scheduleToBlocks,
   parseBlocksFromString,
   parseBlocksFromApiSpec,
-  timeToMinutes,
   type ScheduleBlock,
   type DayOfWeek,
 } from '@/composables/scheduleUtils'
 import { useScheduleManualStore } from '@/stores/scheduleManual'
-import { minutesToTime } from '@/composables/useTimeParsing'
 
 export const DAY_LABELS: DayOfWeek[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -28,7 +29,11 @@ function roundToFiveMinutes(minutes: number): number {
 }
 
 export function useSchedule() {
-  const { selectedCourseCode, selectedSectionId, scheduledCourses, hasScheduled, removeScheduledSection } = useStore()
+  const ui = useUiStore()
+  const scheduleStore = useScheduleStore()
+  const scheduledCourses = computed(() => scheduleStore.scheduledCourses)
+  const hasScheduled = (courseCode?: string | null, sectionId?: string | null) => scheduleStore.hasScheduled(courseCode, sectionId)
+  const removeScheduledSection = (courseCode?: string | null, sectionId?: string | null) => scheduleStore.removeScheduledSection(courseCode, sectionId)
   // Manual blocks created by user interactions (dragging). Persisted via Pinia store.
   const manualStore = useScheduleManualStore()
   const { manualBlocks } = storeToRefs(manualStore)
@@ -149,9 +154,7 @@ export function useSchedule() {
     for (const course of scheduledCourses.value || []) {
       const color = hashColorFromCourse(course.code)
       for (const section of course.sections || []) {
-        const spec = (section.schedule || '').toString()
-        const blocks = parseBlocksFromApiSpec(spec, course.title, color, course.code, section.sectionId)
-        out.push(...blocks)
+        out.push(...scheduleToBlocks(section.schedules, course.title, color, course.code, section.sectionId))
       }
     }
     return out
@@ -176,6 +179,12 @@ export function useSchedule() {
     setPreviewBlocks(parsed)
   }
 
+  const setHoverPreviewFromSchedules = (schedules: Schedule[], label?: string, courseCode?: string) => {
+    const color = 'rgba(249, 115, 22, 0.25)'
+    const blocks = scheduleToBlocks(schedules, label, color, courseCode)
+    setPreviewBlocks(blocks)
+  }
+
   const clearHoverPreview = () => {
     clearPreviewBlocks()
   }
@@ -184,29 +193,18 @@ export function useSchedule() {
     // state
     blocks: listBlocks,
     previewBlocks,
-    selectedCourseCode,
-    selectedSectionId,
-    // constants
-    DAY_LABELS,
-    START_MINUTES,
-    END_MINUTES,
-    SLOT_MINUTES,
     // crud
     addBlock,
     updateBlock,
     removeBlock,
     clearBlocks,
     setBlocks,
-    setPreviewBlocks,
-    clearPreviewBlocks,
     // helpers
     geometryFor,
-    timeToMinutes,
-    minutesToTime,
-    parseBlocksFromString,
-    parseBlocksFromApiSpec,
+    hashColorFromCourse,
     hasCourseSection,
     removeCourseSection,
+    setHoverPreviewFromSchedules,
     setHoverPreviewFromString,
     clearHoverPreview,
   }

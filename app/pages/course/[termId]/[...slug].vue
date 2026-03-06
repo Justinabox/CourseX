@@ -13,19 +13,19 @@ definePageMeta({
 })
 
 const { mode } = useRouteMode()
-const { selectCourse, clearSelection } = useCourseSelection()
+const ui = useUiStore()
 
 watch(
   () => mode.value,
   (m) => {
     if (m.mode === 'unknown') {
-      clearSelection()
+      ui.clearSelection()
       return
     }
     if (m.courseCode) {
-      selectCourse(m.courseCode, m.sectionId || null)
+      ui.setSelection(m.courseCode, m.sectionId || null)
     } else {
-      clearSelection()
+      ui.clearSelection()
     }
   },
   { immediate: true, deep: true }

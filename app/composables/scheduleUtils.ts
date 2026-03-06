@@ -1,3 +1,5 @@
+import type { DayCode, Schedule } from '@/types/db'
+
 export type DayOfWeek = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun'
 
 export type ScheduleBlock = {
@@ -12,8 +14,38 @@ export type ScheduleBlock = {
   meta?: Record<string, unknown>
 }
 
+// ─── Structured Schedule → ScheduleBlock Conversion ──────────────────────────
+
+const DAYCODE_TO_INDEX: Record<DayCode, number> = {
+  M: 1, T: 2, W: 3, Th: 4, F: 5, S: 6,
+}
+
+function makeBlockId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+}
+
+export function scheduleToBlocks(
+  schedules: Schedule[],
+  label?: string,
+  color?: string,
+  courseCode?: string,
+  sectionId?: string,
+): ScheduleBlock[] {
+  const out: ScheduleBlock[] = []
+  for (const sched of schedules) {
+    const start = timeToMinutes(sched.start)
+    const end = timeToMinutes(sched.end)
+    for (const day of sched.days) {
+      const dayIndex = DAYCODE_TO_INDEX[day]
+      if (dayIndex == null) continue
+      out.push({ id: makeBlockId(), dayIndex, startMinutes: start, endMinutes: end, label, color, courseCode, sectionId })
+    }
+  }
+  return out
+}
+
 export function timeToMinutes(time: string): number {
-  const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(time)
+  const m = /^\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*$/.exec(time)
   if (!m) return 0
   const h = Number(m[1])
   const mm = Number(m[2])
@@ -44,7 +76,7 @@ export function dayIndexFromToken(token: string): number | null {
 
 export function parseBlocksFromString(spec: string, label?: string, color?: string, courseCode?: string): ScheduleBlock[] {
   if (!spec) return []
-  const match = spec.match(/(.*)\s+(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/i)
+  const match = spec.match(/(.*)\s+(\d{1,2}:\d{2})(?::\d{2})?\s*-\s*(\d{1,2}:\d{2})(?::\d{2})?/i)
   if (!match) return []
   const [, dayPart, startStr, endStr] = match
   if (!dayPart || !startStr || !endStr) return []
@@ -96,7 +128,7 @@ export function parseBlocksFromApiSpec(spec: string, label?: string, color?: str
   const chunks = spec.split(/;+/).map((s) => s.trim()).filter(Boolean)
   const out: ScheduleBlock[] = []
   for (const chunk of chunks) {
-    const m = /^([A-Za-z]+)\s+(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/.exec(chunk.replace(/\s+/g, ' '))
+    const m = /^([A-Za-z]+)\s+(\d{1,2}:\d{2})(?::\d{2})?\s*-\s*(\d{1,2}:\d{2})(?::\d{2})?$/.exec(chunk.replace(/\s+/g, ' '))
     if (!m) continue
     const dayToken = m[1] ?? ''
     const startStr = m[2] ?? ''

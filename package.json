@@ -10,17 +10,22 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@nuxt/content": "3.6.3",
     "@nuxt/eslint": "1.8.0",
     "@nuxt/ui": "3.3.0",
     "@pinia/nuxt": "^0.11.2",
     "@tailwindcss/vite": "^4.1.11",
     "better-sqlite3": "^12.2.0",
+    "drizzle-orm": "^0.45.1",
     "eslint": "^9.0.0",
     "nuxt": "^4.0.3",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.6.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.9"
   }
 }

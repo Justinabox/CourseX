@@ -1,80 +1,75 @@
-// Dynamic term-aware data loaded from public folder at runtime
 import { useTermId } from '@/composables/useTermId'
-import { ensureIndexAsync, getAggregatedCourseDetails, getSectionDetailsIndexed } from './indexer'
-import type { CourseDetails, RawGroupedCourse, UICourse } from '../api/types'
-import { mapGroupedToUICourse, mergeSectionsById } from '../api/mappers'
-// removed duplicate imports from indexer
+import type { CourseDetails, UICourse } from '../api/types'
 import { normalizeCourseCode } from '@/utils/normalize'
 
+// Module-level caches
+let programsCache: Record<string, any> | null = null
+const coursesByTermCache = new Map<string, { data: UICourse[]; ts: number }>()
+const COURSES_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export async function listSchoolAndPrograms() {
-  const { termId } = useTermId()
-  try {
-    const data = await $fetch(`/data/${termId.value}/programs.json`)
-    return data as any
-  } catch {
-    throw createError({ statusCode: 404, statusMessage: 'Programs not found for term' })
-  }
+  if (programsCache) return programsCache
+  const data = await $fetch<Record<string, any>>('/api/programs')
+  programsCache = data
+  return data
 }
 
 export async function listAllCourses(): Promise<UICourse[]> {
   const { termId } = useTermId()
-  const idx = await ensureIndexAsync(termId.value)
-  return idx.allUICourses
+  const tid = termId.value
+  const cached = coursesByTermCache.get(tid)
+  if (cached && Date.now() - cached.ts < COURSES_CACHE_TTL) return cached.data
+  const data = await $fetch<UICourse[]>(`/api/courses/${tid}`)
+  coursesByTermCache.set(tid, { data, ts: Date.now() })
+  return data
 }
 
 export async function getSchoolCourses(schoolPrefix: string, programPrefix: string): Promise<UICourse[]> {
-  const byCode: Record<string, UICourse> = {}
   if (!schoolPrefix || !programPrefix) return []
-  try {
-    const { termId } = useTermId()
-    const coursesBySchool = await fetchCoursesBySchool(termId.value)
-    const byProgram = (coursesBySchool as Record<string, any>)[schoolPrefix]
-    if (!byProgram) return []
-    const list: RawGroupedCourse[] = (byProgram as Record<string, RawGroupedCourse[]>)[programPrefix] || []
-    for (const raw of list) {
-      const mapped = mapGroupedToUICourse(raw)
-      if (!mapped) continue
-      const key = `${normalizeCourseCode(mapped.code)}::${mapped.title.toString().trim().toUpperCase()}`
-      const existing = byCode[key]
-      if (!existing) {
-        byCode[key] = mapped
-      } else {
-        const sections = mergeSectionsById(existing.sections || [], mapped.sections || [])
-        byCode[key] = {
-          title: existing.title || mapped.title,
-          code: existing.code || mapped.code,
-          description: existing.description || mapped.description,
-          sections,
-        }
-      }
-    }
-  } catch (e) {
-    // ignore
-  }
-  return Object.values(byCode)
+  const { termId } = useTermId()
+  return $fetch<UICourse[]>(`/api/courses/${termId.value}/by-program/${encodeURIComponent(programPrefix)}`)
 }
 
 export async function getCourseDetails(courseCode: string): Promise<CourseDetails | null> {
   if (!courseCode) return null
   const { termId } = useTermId()
-  // Ensure the index for the current term is built before accessing details
-  await ensureIndexAsync(termId.value)
-  return getAggregatedCourseDetails(courseCode, termId.value)
+  try {
+    return await $fetch<CourseDetails>(`/api/courses/${termId.value}/${encodeURIComponent(courseCode)}`)
+  } catch {
+    return null
+  }
 }
 
 export async function getSectionDetails(courseCode: string, sectionId: string): Promise<CourseDetails | null> {
   if (!courseCode || !sectionId) return null
   const { termId } = useTermId()
-  // Ensure the index for the current term is built before accessing details
-  await ensureIndexAsync(termId.value)
-  return getSectionDetailsIndexed(courseCode, sectionId, termId.value)
+  try {
+    return await $fetch<CourseDetails>(`/api/sections/${termId.value}/${encodeURIComponent(sectionId)}`)
+  } catch {
+    return null
+  }
 }
 
-async function fetchCoursesBySchool(termId: string): Promise<Record<string, any>> {
-  try {
-    const data = await $fetch(`/data/${termId}/courses.json`)
-    return (data || {}) as any
-  } catch {
-    throw createError({ statusCode: 404, statusMessage: 'Courses not found for term' })
-  }
+export async function getSectionDetailsBatch(sectionIds: string[]): Promise<CourseDetails[]> {
+  if (!sectionIds || sectionIds.length === 0) return []
+  const { termId } = useTermId()
+  return $fetch<CourseDetails[]>(`/api/sections/${termId.value}/batch`, {
+    method: 'POST',
+    body: { sectionIds },
+  })
+}
+
+export function createWatchlistKey(code: string, title: string): string {
+  const normalizedCode = normalizeCourseCode(code)
+  const normalizedTitle = title.trim().toUpperCase()
+  return `${normalizedCode}::${normalizedTitle}`
+}
+
+export function parseWatchlistKey(key: string): { code: string; title: string } | null {
+  const parts = key.split('::')
+  if (parts.length < 2) return null
+  const code = parts[0]
+  const title = parts.slice(1).join('::')
+  if (!code || !title) return null
+  return { code, title }
 }

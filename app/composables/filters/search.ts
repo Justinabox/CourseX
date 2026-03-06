@@ -1,5 +1,7 @@
 import type { UICourse } from '@/composables/api/types'
 import { normalizeString } from './normalize'
+import { formatSchedulesAsString } from '@/composables/api/transforms'
+import { formatUnitsRange } from '@/composables/api/transforms'
 
 export function courseMatchesSearch(course: UICourse, search: string): boolean {
   const s = normalizeString(search)
@@ -7,14 +9,13 @@ export function courseMatchesSearch(course: UICourse, search: string): boolean {
   const sectionStrings = (course.sections || [])
     .flatMap((sec) => [
       sec.sectionId,
-      ...(Array.isArray((sec as any).instructors) ? (sec as any).instructors : []),
-      sec.schedule,
-      sec.location,
-      (sec.units != null ? Number(sec.units).toFixed(1) : ''),
+      ...sec.instructors,
+      formatSchedulesAsString(sec.schedules),
+      formatUnitsRange(sec.units),
       sec.type ?? '',
     ])
     .filter(Boolean)
-  const geLetters = Array.from(new Set((course as any).ge || [])).filter(Boolean) as string[]
+  const geLetters = Array.from(new Set(course.ges || [])).filter(Boolean) as string[]
   const geTokens = geLetters.flatMap((g) => [
     `GE-${g}`,
     `GE ${g}`,

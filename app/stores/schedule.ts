@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTermId } from '@/composables/useTermId'
-import type { UICourse, UICourseSection, SchedulePair } from '@/composables/api/types'
-import { parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '@/composables/scheduleUtils'
-import { ensureIndexAsync } from '@/composables/api/indexer'
+import type { UICourse, UICourseSection, SchedulePair, Schedule } from '@/composables/api/types'
+import { scheduleToBlocks, parseBlocksFromApiSpec, parseBlocksFromString, type ScheduleBlock } from '@/composables/scheduleUtils'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
 import { hydrateScheduledCourses } from '@/composables/scheduleHydration'
 
@@ -143,7 +142,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       let sum = 0
       for (const course of Object.values(currentMap() || {})) {
         for (const section of course.sections || []) {
-          const u = typeof section.units === 'number' ? section.units : 0
+          const u = section.units.length > 0 ? Math.max(...section.units) : 0
           sum += Number.isFinite(u) ? u : 0
         }
       }
@@ -189,26 +188,19 @@ export const useScheduleStore = defineStore('schedule', () => {
     setCurrentPairs(next)
   }
 
-  function checkScheduleCollision(spec: string): string[] {
-    const inputBlocksRaw: ScheduleBlock[] = (() => {
-      const color = undefined
-      const label = undefined
-      let parsed = parseBlocksFromString(spec, label, color)
-      if (!parsed || parsed.length === 0) parsed = parseBlocksFromApiSpec(spec, label, color)
-      return parsed
-    })()
-    if (!inputBlocksRaw || inputBlocksRaw.length === 0) return []
+  function checkScheduleCollision(input: Schedule[]): string[] {
+    const inputBlocks = scheduleToBlocks(input)
+    if (inputBlocks.length === 0) return []
 
     const scheduledBlocks: ScheduleBlock[] = []
     for (const course of Object.values(currentMap() || {})) {
       for (const section of course.sections || []) {
-        const blocks = parseBlocksFromApiSpec((section.schedule || '').toString(), course.title, undefined, course.code, section.sectionId)
-        scheduledBlocks.push(...blocks)
+        scheduledBlocks.push(...scheduleToBlocks(section.schedules, course.title, undefined, course.code, section.sectionId))
       }
     }
 
     const collidingCodes = new Set<string>()
-    for (const a of inputBlocksRaw) {
+    for (const a of inputBlocks) {
       for (const b of scheduledBlocks) {
         if (a.dayIndex !== b.dayIndex) continue
         const overlap = a.startMinutes < b.endMinutes && a.endMinutes > b.startMinutes
