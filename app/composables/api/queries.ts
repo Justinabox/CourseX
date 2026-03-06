@@ -9,9 +9,14 @@ const COURSES_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function listSchoolAndPrograms() {
   if (programsCache) return programsCache
-  const data = await $fetch<Record<string, any>>('/api/programs')
-  programsCache = data
-  return data
+  try {
+    const data = await $fetch<Record<string, any>>('/api/programs')
+    programsCache = data
+    return data
+  } catch (e: any) {
+    if (e?.statusCode === 401) return {}
+    throw e
+  }
 }
 
 export async function listAllCourses(): Promise<UICourse[]> {
@@ -19,15 +24,25 @@ export async function listAllCourses(): Promise<UICourse[]> {
   const tid = termId.value
   const cached = coursesByTermCache.get(tid)
   if (cached && Date.now() - cached.ts < COURSES_CACHE_TTL) return cached.data
-  const data = await $fetch<UICourse[]>(`/api/courses/${tid}`)
-  coursesByTermCache.set(tid, { data, ts: Date.now() })
-  return data
+  try {
+    const data = await $fetch<UICourse[]>(`/api/courses/${tid}`)
+    coursesByTermCache.set(tid, { data, ts: Date.now() })
+    return data
+  } catch (e: any) {
+    if (e?.statusCode === 401) return []
+    throw e
+  }
 }
 
 export async function getSchoolCourses(schoolPrefix: string, programPrefix: string): Promise<UICourse[]> {
   if (!schoolPrefix || !programPrefix) return []
   const { termId } = useTermId()
-  return $fetch<UICourse[]>(`/api/courses/${termId.value}/by-program/${encodeURIComponent(programPrefix)}`)
+  try {
+    return await $fetch<UICourse[]>(`/api/courses/${termId.value}/by-program/${encodeURIComponent(programPrefix)}`)
+  } catch (e: any) {
+    if (e?.statusCode === 401) return []
+    throw e
+  }
 }
 
 export async function getCourseDetails(courseCode: string): Promise<CourseDetails | null> {
@@ -53,10 +68,15 @@ export async function getSectionDetails(courseCode: string, sectionId: string): 
 export async function getSectionDetailsBatch(sectionIds: string[]): Promise<CourseDetails[]> {
   if (!sectionIds || sectionIds.length === 0) return []
   const { termId } = useTermId()
-  return $fetch<CourseDetails[]>(`/api/sections/${termId.value}/batch`, {
-    method: 'POST',
-    body: { sectionIds },
-  })
+  try {
+    return await $fetch<CourseDetails[]>(`/api/sections/${termId.value}/batch`, {
+      method: 'POST',
+      body: { sectionIds },
+    })
+  } catch (e: any) {
+    if (e?.statusCode === 401) return []
+    throw e
+  }
 }
 
 export function createWatchlistKey(code: string, title: string): string {

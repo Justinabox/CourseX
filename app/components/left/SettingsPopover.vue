@@ -14,6 +14,10 @@
           <option v-for="t in terms" :key="t.termCode" :value="String(t.termCode)">{{ t.season }} {{ t.year }}</option>
         </select>
       </div>
+      <button @click="handleLogout" class="w-full flex items-center gap-2 p-2 rounded-md hover:bg-cx-surface-800/80 text-sm">
+        <Icon name="uil:sign-out-alt" class="h-5 w-5" />
+        <span>Logout</span>
+      </button>
     </div>
   </div>
 </template>
@@ -28,6 +32,7 @@ const router = useRouter()
 const { termId } = useTermId()
 const { terms } = useTerms()
 
+const { clear } = useUserSession()
 const settingsOpen = ref(false)
 const settingsRef = ref<HTMLElement | null>(null)
 
@@ -76,6 +81,11 @@ function cycleTheme() {
   const current = getPreference()
   const idx = (order.indexOf(current) + 1) % order.length
   colorMode.preference = order[idx] ?? 'system'
+}
+
+async function handleLogout() {
+  await clear()
+  navigateTo('/login')
 }
 
 function onTermChange(e: Event) {

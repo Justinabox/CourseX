@@ -51,19 +51,19 @@
         <div class="flex flex-col text-center">
           <span
             class="w-3.5 h-3.5 text-xs font-semibold line-clamp-1 leading-none grid place-items-center"
-            :class="section.hasDClearance ? 'bg-zebra-sm-rose text-rose-500' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
+            :class="section.hasDClearance ? 'bg-zebra-sm-danger text-cx-status-danger-icon' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
           >
             D
           </span>
           <span
             class="w-3.5 h-3.5 text-xs font-semibold line-clamp-1 leading-none grid place-items-center"
-            :class="section.hasPrerequisites ? 'bg-zebra-sm-yellow text-yellow-500' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
+            :class="section.hasPrerequisites ? 'bg-zebra-sm-warning text-cx-status-warning-icon' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
           >
             R
           </span>
           <span
             class="w-3.5 h-3.5 text-xs font-semibold line-clamp-1 leading-none grid place-items-center"
-            :class="section.hasDuplicatedCredit ? 'bg-zebra-sm-green text-green-500' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
+            :class="section.hasDuplicatedCredit ? 'bg-zebra-sm-success text-cx-status-success-icon' : 'bg-zebra-sm text-cx-text-weak-shimmer'"
           >
             C
           </span>
@@ -72,14 +72,14 @@
         <!-- Section Attributes -->
         <div class="flex flex-col gap-1 w-full justify-center" :class="sectionClassFor(section)">
           <div class="flex items-center gap-2 justify-between">
-            <div class="flex items-center gap-1">
-              <Icon name="uil:graduation-cap" class="h-4 w-4 text-cx-text-muted" />
+            <div class="flex items-center gap-1 min-w-0">
+              <Icon name="uil:graduation-cap" class="h-4 w-4 shrink-0 text-cx-text-muted" />
               <!-- Instructors with RMP-based coloring and links -->
               <span class="text-xs font-semibold line-clamp-1">
                 <template v-if="instructorViewsFor(section.sectionId).length > 0">
                   <template v-for="(item, idx) in instructorViewsFor(section.sectionId)" :key="item.name">
                     <a
-                      :class="{ 'text-rose-600': item.isLow, 'text-cx-text-secondary': !item.isLow }"
+                      :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-secondary': !item.isLow }"
                     >
                       {{ item.name }}
                     </a>
@@ -92,20 +92,20 @@
               </span>
             </div>
 
-            <div class="flex items-center gap-1">
-              <Icon name="uil:user" class="h-4 w-4" :class="occupancyClassFor(section, 'icon')" />
-              <span class="text-xs line-clamp-1" :class="occupancyClassFor(section, 'text')">{{ section.enrolled }} / {{ section.capacity }}</span>
+            <div class="flex items-center gap-1 shrink-0">
+              <Icon name="uil:user" class="h-4 w-4 shrink-0" :class="occupancyClassFor(section, 'icon')" />
+              <span class="text-xs line" :class="occupancyClassFor(section, 'text')">{{ section.enrolled }} / {{ section.capacity }}</span>
             </div>
           </div>
 
           <div class="flex items-center gap-2 justify-between">
-            <div class="flex items-center gap-1">
-              <Icon name="uil:clock" class="h-4 w-4 text-cx-text-muted" :class="scheduleCollisionClassFor(section, 'icon')" />
+            <div class="flex items-center gap-1 min-w-0">
+              <Icon name="uil:clock" class="h-4 w-4 shrink-0 text-cx-text-muted" :class="scheduleCollisionClassFor(section, 'icon')" />
               <span class="text-xs text-cx-text-secondary line-clamp-1" :class="scheduleCollisionClassFor(section, 'text')">{{ renderSchedule(section) }}</span>
             </div>
 
-            <div class="flex items-center gap-1">
-              <Icon name="uil:location-point" class="h-4 w-4 text-cx-text-muted" />
+            <div class="flex items-center gap-1 shrink-0">
+              <Icon name="uil:location-point" class="h-4 w-4 shrink-0 text-cx-text-muted" />
               <span class="text-xs text-cx-text-secondary font-semibold line-clamp-1">{{ renderLocation(section) }}</span>
             </div>
           </div>
@@ -159,7 +159,7 @@ function onWatchlistToggle() {
 
 const starIconClass = computed(() =>
   isInWatchlist.value
-    ? 'text-yellow-500 font-bold'
+    ? 'text-cx-accent-star font-bold'
     : 'text-cx-text-weak-muted opacity-50'
 )
 
@@ -176,14 +176,14 @@ function renderLocation(section: UICourseSection) {
 
 function occupancyClassFor(section: UICourseSection, type: 'icon' | 'text') {
   const isFull = (section.enrolled || 0) >= (section.capacity || 0)
-  if (type === 'icon') return isFull ? 'text-rose-700' : 'text-cx-text-muted'
-  else if (type === 'text') return isFull ? 'decoration-rose-700 text-rose-700 underline decoration-1' : 'text-cx-text-secondary font-semibold'
+  if (type === 'icon') return isFull ? 'text-cx-status-danger-emphasis' : 'text-cx-text-muted'
+  else if (type === 'text') return isFull ? 'decoration-cx-status-danger-emphasis text-cx-status-danger-emphasis underline decoration-1' : 'text-cx-text-secondary font-semibold'
 }
 
 function scheduleCollisionClassFor(section: UICourseSection, type: 'icon' | 'text') {
   const isColliding = checkScheduleCollision(section.schedules).length > 0
-  if (type === 'icon') return isColliding ? 'text-yellow-700' : 'text-cx-text-muted'
-  else if (type === 'text') return isColliding ? 'decoration-yellow-700 text-yellow-700 underline decoration-1' : 'text-cx-text-secondary font-semibold'
+  if (type === 'icon') return isColliding ? 'text-cx-status-warning-emphasis' : 'text-cx-text-muted'
+  else if (type === 'text') return isColliding ? 'decoration-cx-status-warning-emphasis text-cx-status-warning-emphasis underline decoration-1' : 'text-cx-text-secondary font-semibold'
 }
 
 function sectionClassFor(section: UICourseSection) {

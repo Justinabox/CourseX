@@ -180,14 +180,14 @@ const clearCourseLevel = () => {
 
 const dClearanceClass = computed(() => {
   const v = filters.dClearance
-  if (v === 'only') return 'bg-zebra-sm-rose text-rose-400'
-  if (v === 'exclude') return 'bg-zebra-sm outline outline-1 outline-rose-400 text-rose-400 shadow-[0_0_2px_1px] shadow-rose-500'
+  if (v === 'only') return 'bg-zebra-sm-danger text-cx-status-danger-text'
+  if (v === 'exclude') return 'bg-zebra-sm outline outline-1 outline-cx-status-danger-text text-cx-status-danger-text shadow-[0_0_2px_1px] shadow-cx-status-danger-glow'
   return 'bg-zebra-sm text-cx-text-weak-shimmer'
 })
 const prereqClass = computed(() => {
   const v = filters.prerequisites
-  if (v === 'only') return 'bg-zebra-sm-yellow text-yellow-400'
-  if (v === 'exclude') return 'bg-zebra-sm outline outline-1 outline-yellow-400 text-yellow-400 shadow-[0_0_2px_1px] shadow-yellow-500'
+  if (v === 'only') return 'bg-zebra-sm-warning text-cx-status-warning-text'
+  if (v === 'exclude') return 'bg-zebra-sm outline outline-1 outline-cx-status-warning-text text-cx-status-warning-text shadow-[0_0_2px_1px] shadow-cx-status-warning-glow'
   return 'bg-zebra-sm text-cx-text-weak-shimmer'
 })
 const conflictsClass = computed(() => filters.conflicts === 'exclude' ? 'outline outline-1 outline-cx-text-muted text-cx-text-weak' : 'text-cx-text-weak-shimmer')

@@ -1,7 +1,7 @@
 <template>
   <button
     class="text-sm w-fit py-2 px-3 rounded-md bg-cx-surface-800 hover:bg-cx-surface-700"
-    :class="{ 'text-rose-500/80 border-rose-700/50 border-1': isInSchedule, 'text-cx-text-subtle': !isInSchedule }"
+    :class="{ 'text-cx-status-danger-icon/80 border-cx-status-danger-border border-1': isInSchedule, 'text-cx-text-subtle': !isInSchedule }"
     @click="onAddOrRemoveSchedule"
     @mouseenter="onHoverPreviewEnter"
     @mouseleave="onHoverPreviewLeave"
@@ -11,7 +11,7 @@
 
   <button
     class="text-sm w-fit py-2 px-3 rounded-md bg-cx-surface-800 hover:bg-cx-surface-700"
-    :class="{ 'text-yellow-500/80 border-yellow-700/50 border-1': isInWatchlist, 'text-cx-text-subtle': !isInWatchlist }"
+    :class="{ 'text-cx-status-warning-icon/80 border-cx-status-warning-border border-1': isInWatchlist, 'text-cx-text-subtle': !isInWatchlist }"
     @click="onAddOrRemoveWatchlist"
   >
     {{ isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist' }}

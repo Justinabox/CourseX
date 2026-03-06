@@ -9,6 +9,7 @@
   --color-cx-text-subtle: oklch(92.8% 0.006 264.531);    /* gray-300 */
   --color-cx-text-muted: oklch(55.4% 0.046 257.417);     /* slate-500 */
   --color-cx-text-secondary: oklch(70.4% 0.04 256.788);  /* slate-400 */
+  --color-cx-text-weak: oklch(49.7% 0.045 257.417);      /* between muted and weak-muted */
   --color-cx-text-weak-muted: oklch(44.6% 0.043 257.281); /* slate-600 */
   --color-cx-text-weak-shimmer: oklch(37.9% 0.041 260.031); /* slate-800 */
 
@@ -20,76 +21,189 @@
   --color-cx-surface-800: oklch(27.9% 0.041 260.031); /* slate-800 */
   --color-cx-surface-950: oklch(12.9% 0.042 264.695); /* slate-950 */
 
-  /* Status / Accents */
-  --color-cx-yellow-700: #ca8a04;
-  --color-cx-rose-700: #be123c;
-  --color-cx-green-700: #166534;
-  --color-cx-blue-700: #1e40af;
-  --color-cx-violet-700: #6d28d9;
+  /* === Status: Danger (Rose) === */
+  --color-cx-status-danger-icon: oklch(64.5% 0.246 16.439);       /* rose-500 */
+  --color-cx-status-danger-text: oklch(71.2% 0.194 13.428);       /* rose-400 */
+  --color-cx-status-danger-emphasis: oklch(50.5% 0.213 16.252);   /* rose-700 */
+  --color-cx-status-danger-badge-bg: oklch(39.6% 0.165 17.864);   /* rose-800 */
+  --color-cx-status-danger-badge-text: oklch(89.2% 0.058 10.001); /* rose-200 */
+  --color-cx-status-danger-glow: oklch(64.5% 0.246 16.439);       /* rose-500 */
+  --color-cx-status-danger-border: oklch(50.5% 0.213 16.252 / 0.5); /* rose-700/50 */
+  --color-cx-status-danger-zebra: oklch(50.5% 0.213 16.252);      /* rose-700 */
+
+  /* === Status: Warning (Yellow) === */
+  --color-cx-status-warning-icon: oklch(79.5% 0.184 86.047);      /* yellow-500 */
+  --color-cx-status-warning-text: oklch(85.2% 0.179 91.936);      /* yellow-400 */
+  --color-cx-status-warning-emphasis: oklch(62.0% 0.162 79.629);  /* yellow-700 */
+  --color-cx-status-warning-badge-bg: oklch(47.6% 0.141 75.202);  /* yellow-800 */
+  --color-cx-status-warning-badge-text: oklch(94.5% 0.129 101.54); /* yellow-200 */
+  --color-cx-status-warning-glow: oklch(79.5% 0.184 86.047);      /* yellow-500 */
+  --color-cx-status-warning-border: oklch(62.0% 0.162 79.629 / 0.5); /* yellow-700/50 */
+  --color-cx-status-warning-zebra: oklch(62.0% 0.162 79.629);     /* yellow-700 */
+
+  /* === Status: Success (Green) === */
+  --color-cx-status-success-icon: oklch(72.3% 0.219 149.579);     /* green-500 */
+  --color-cx-status-success-text: oklch(79.2% 0.209 151.711);     /* green-400 */
+  --color-cx-status-success-badge-bg: oklch(39.2% 0.125 153.274); /* green-800 */
+  --color-cx-status-success-badge-text: oklch(92.5% 0.14 155.995); /* green-200 */
+  --color-cx-status-success-zebra: oklch(39.2% 0.125 153.274);    /* green-700 */
+
+  /* === Status: Error (for auth/form) === */
+  --color-cx-status-error-text: oklch(71.2% 0.194 13.428);        /* rose-400 */
+
+  /* === Type: Lab (Blue) === */
+  --color-cx-type-lab-icon: oklch(62.3% 0.209 255.092);           /* blue-500 */
+  --color-cx-type-lab-text: oklch(70.7% 0.165 254.624);           /* blue-400 */
+  --color-cx-type-lab-zebra: oklch(42.4% 0.199 265.638);          /* blue-700 */
+
+  /* === Type: Discussion (Violet) === */
+  --color-cx-type-disc-icon: oklch(60.6% 0.25 292.717);           /* violet-500 */
+  --color-cx-type-disc-text: oklch(69.9% 0.198 293.541);          /* violet-400 */
+  --color-cx-type-disc-zebra: oklch(49.1% 0.27 292.581);          /* violet-700 */
+
+  /* === Accent === */
+  --color-cx-accent-star: oklch(79.5% 0.184 86.047);              /* yellow-500 */
+
+  /* === Schedule RGB tokens (for inline style alpha composition) === */
+  --color-cx-schedule-block-rgb: 59 130 246;     /* blue-500 */
+  --color-cx-schedule-preview-rgb: 249 115 22;   /* orange-500 */
 }
 
-/* Color mode overrides
-   Nuxt color mode sets a class of either `dark` or `light` on <html>.
-   We override our CSS variables under those classes so components update live. */
+/* Color mode overrides */
 .dark {
-  --color-cx-brand-start: #8b5cf6; /* violet-500 */
-  --color-cx-brand-end: #d946ef;   /* fuchsia-500 */
+  --color-cx-brand-start: #8b5cf6;
+  --color-cx-brand-end: #d946ef;
 
   /* Neutrals / Text */
-  --color-cx-text-subtle: oklch(92.8% 0.006 264.531);    /* gray-300 */
-  --color-cx-text-muted: oklch(55.4% 0.046 257.417);     /* slate-500 */
-  --color-cx-text-secondary: oklch(70.4% 0.04 256.788);  /* slate-400 */
-  --color-cx-text-weak-muted: oklch(44.6% 0.043 257.281); /* slate-600 */
-  --color-cx-text-weak-shimmer: oklch(37.9% 0.041 260.031); /* slate-800 */
+  --color-cx-text-subtle: oklch(92.8% 0.006 264.531);
+  --color-cx-text-muted: oklch(55.4% 0.046 257.417);
+  --color-cx-text-secondary: oklch(70.4% 0.04 256.788);
+  --color-cx-text-weak: oklch(49.7% 0.045 257.417);
+  --color-cx-text-weak-muted: oklch(44.6% 0.043 257.281);
+  --color-cx-text-weak-shimmer: oklch(37.9% 0.041 260.031);
 
   /* Surfaces / Borders */
-  --color-cx-border: oklch(29.8% 0.045 265.755); /* ~slate-890 */
-  --color-cx-background: oklch(13% 0.028 261.692); /* gray-950 */
-  --color-cx-background-decorative: oklch(14.1% 0.005 285.823); /* zinc-950 */
-  --color-cx-surface-700: oklch(37.2% 0.044 257.287); /* slate-700 */
-  --color-cx-surface-800: oklch(27.9% 0.041 260.031); /* slate-800 */
-  --color-cx-surface-950: oklch(12.9% 0.042 264.695); /* slate-950 */
+  --color-cx-border: oklch(29.8% 0.045 265.755);
+  --color-cx-background: oklch(13% 0.028 261.692);
+  --color-cx-background-decorative: oklch(14.1% 0.005 285.823);
+  --color-cx-surface-700: oklch(37.2% 0.044 257.287);
+  --color-cx-surface-800: oklch(27.9% 0.041 260.031);
+  --color-cx-surface-950: oklch(12.9% 0.042 264.695);
 
-  /* Status / Accents */
-  --color-cx-yellow-700: #ca8a04;
-  --color-cx-rose-700: #be123c;
-  --color-cx-green-700: #166534;
-  --color-cx-blue-700: #1e40af;
-  --color-cx-violet-700: #6d28d9;
+  /* Status: Danger */
+  --color-cx-status-danger-icon: oklch(64.5% 0.246 16.439);
+  --color-cx-status-danger-text: oklch(71.2% 0.194 13.428);
+  --color-cx-status-danger-emphasis: oklch(50.5% 0.213 16.252);
+  --color-cx-status-danger-badge-bg: oklch(39.6% 0.165 17.864);
+  --color-cx-status-danger-badge-text: oklch(89.2% 0.058 10.001);
+  --color-cx-status-danger-glow: oklch(64.5% 0.246 16.439);
+  --color-cx-status-danger-border: oklch(50.5% 0.213 16.252 / 0.5);
+  --color-cx-status-danger-zebra: oklch(50.5% 0.213 16.252);
+
+  /* Status: Warning */
+  --color-cx-status-warning-icon: oklch(79.5% 0.184 86.047);
+  --color-cx-status-warning-text: oklch(85.2% 0.179 91.936);
+  --color-cx-status-warning-emphasis: oklch(62.0% 0.162 79.629);
+  --color-cx-status-warning-badge-bg: oklch(47.6% 0.141 75.202);
+  --color-cx-status-warning-badge-text: oklch(94.5% 0.129 101.54);
+  --color-cx-status-warning-glow: oklch(79.5% 0.184 86.047);
+  --color-cx-status-warning-border: oklch(62.0% 0.162 79.629 / 0.5);
+  --color-cx-status-warning-zebra: oklch(62.0% 0.162 79.629);
+
+  /* Status: Success */
+  --color-cx-status-success-icon: oklch(72.3% 0.219 149.579);
+  --color-cx-status-success-text: oklch(79.2% 0.209 151.711);
+  --color-cx-status-success-badge-bg: oklch(39.2% 0.125 153.274);
+  --color-cx-status-success-badge-text: oklch(92.5% 0.14 155.995);
+  --color-cx-status-success-zebra: oklch(39.2% 0.125 153.274);
+
+  /* Status: Error */
+  --color-cx-status-error-text: oklch(71.2% 0.194 13.428);
+
+  /* Type: Lab */
+  --color-cx-type-lab-icon: oklch(62.3% 0.209 255.092);
+  --color-cx-type-lab-text: oklch(70.7% 0.165 254.624);
+  --color-cx-type-lab-zebra: oklch(42.4% 0.199 265.638);
+
+  /* Type: Discussion */
+  --color-cx-type-disc-icon: oklch(60.6% 0.25 292.717);
+  --color-cx-type-disc-text: oklch(69.9% 0.198 293.541);
+  --color-cx-type-disc-zebra: oklch(49.1% 0.27 292.581);
+
+  /* Accent */
+  --color-cx-accent-star: oklch(79.5% 0.184 86.047);
+
+  /* Schedule */
+  --color-cx-schedule-block-rgb: 59 130 246;
+  --color-cx-schedule-preview-rgb: 249 115 22;
 }
 
 .light {
-  --color-cx-brand-start: #8b5cf6; /* violet-500 */
-  --color-cx-brand-end: #d946ef;   /* fuchsia-500 */
+  --color-cx-brand-start: #8b5cf6;
+  --color-cx-brand-end: #d946ef;
 
   /* Neutrals / Text */
-  --color-cx-text-subtle: oklch(27.8% 0.033 256.848);    /* gray-800 */
-  --color-cx-text-muted: oklch(55.4% 0.046 257.417);     /* slate-500 */
-  --color-cx-text-secondary: oklch(44.6% 0.043 257.281);  /* slate-600 */
-  --color-cx-text-weak-muted: oklch(70.4% 0.04 256.788); /* slate-400 */
-  --color-cx-text-weak-shimmer: oklch(86.9% 0.022 252.894); /* slate-300 */
+  --color-cx-text-subtle: oklch(27.8% 0.033 256.848);
+  --color-cx-text-muted: oklch(55.4% 0.046 257.417);
+  --color-cx-text-secondary: oklch(44.6% 0.043 257.281);
+  --color-cx-text-weak: oklch(60.5% 0.04 256.788);
+  --color-cx-text-weak-muted: oklch(70.4% 0.04 256.788);
+  --color-cx-text-weak-shimmer: oklch(86.9% 0.022 252.894);
 
   /* Surfaces / Borders */
-  --color-cx-border: oklch(86.9% 0.022 252.894); /* slate-300 */
-  --color-cx-background: oklch(98.5% 0.002 247.839); /* gray-50 */
-  --color-cx-background-decorative: oklch(98.5% 0 0); /* zinc-50 */
-  --color-cx-surface-700: oklch(86.9% 0.022 252.894); /* slate-300 */
-  --color-cx-surface-800: oklch(92.9% 0.013 255.508); /* slate-200 */
-  --color-cx-surface-950: oklch(98.4% 0.003 247.858); /* slate-50 */
+  --color-cx-border: oklch(86.9% 0.022 252.894);
+  --color-cx-background: oklch(98.5% 0.002 247.839);
+  --color-cx-background-decorative: oklch(98.5% 0 0);
+  --color-cx-surface-700: oklch(86.9% 0.022 252.894);
+  --color-cx-surface-800: oklch(92.9% 0.013 255.508);
+  --color-cx-surface-950: oklch(98.4% 0.003 247.858);
 
-  /* Status / Accents , 300 level */
-  --color-cx-yellow-700: oklch(90.5% 0.182 98.111);
-  --color-cx-rose-700: oklch(81% 0.117 11.638);
-  --color-cx-green-700: oklch(87.1% 0.15 154.449);
-  --color-cx-blue-700: oklch(80.9% 0.105 251.813);
-  --color-cx-violet-700: oklch(81.1% 0.111 293.571);
-}
+  /* Status: Danger */
+  --color-cx-status-danger-icon: oklch(57.7% 0.245 15.225);
+  --color-cx-status-danger-text: oklch(50.5% 0.213 16.252);
+  --color-cx-status-danger-emphasis: oklch(39.6% 0.165 17.864);
+  --color-cx-status-danger-badge-bg: oklch(89.2% 0.058 10.001);
+  --color-cx-status-danger-badge-text: oklch(39.6% 0.165 17.864);
+  --color-cx-status-danger-glow: oklch(71.2% 0.194 13.428);
+  --color-cx-status-danger-border: oklch(71.2% 0.194 13.428 / 0.5);
+  --color-cx-status-danger-zebra: oklch(81% 0.117 11.638);
 
-/* RGB tokens for runtime alpha composition in inline styles */
-:root {
-  --color-cx-blue-500-rgb: 59 130 246;
-  --color-cx-orange-500-rgb: 249 115 22;
-  --color-cx-green-500-rgb: 34 197 94;
+  /* Status: Warning */
+  --color-cx-status-warning-icon: oklch(68.1% 0.17 80.985);
+  --color-cx-status-warning-text: oklch(62.0% 0.162 79.629);
+  --color-cx-status-warning-emphasis: oklch(47.6% 0.141 75.202);
+  --color-cx-status-warning-badge-bg: oklch(94.5% 0.129 101.54);
+  --color-cx-status-warning-badge-text: oklch(47.6% 0.141 75.202);
+  --color-cx-status-warning-glow: oklch(85.2% 0.179 91.936);
+  --color-cx-status-warning-border: oklch(85.2% 0.179 91.936 / 0.5);
+  --color-cx-status-warning-zebra: oklch(90.5% 0.182 98.111);
+
+  /* Status: Success */
+  --color-cx-status-success-icon: oklch(62.7% 0.194 149.214);
+  --color-cx-status-success-text: oklch(52.7% 0.174 150.069);
+  --color-cx-status-success-badge-bg: oklch(92.5% 0.14 155.995);
+  --color-cx-status-success-badge-text: oklch(39.2% 0.125 153.274);
+  --color-cx-status-success-zebra: oklch(87.1% 0.15 154.449);
+
+  /* Status: Error */
+  --color-cx-status-error-text: oklch(50.5% 0.213 16.252);
+
+  /* Type: Lab */
+  --color-cx-type-lab-icon: oklch(54.6% 0.215 262.881);
+  --color-cx-type-lab-text: oklch(42.4% 0.199 265.638);
+  --color-cx-type-lab-zebra: oklch(80.9% 0.105 251.813);
+
+  /* Type: Discussion */
+  --color-cx-type-disc-icon: oklch(53.6% 0.244 292.284);
+  --color-cx-type-disc-text: oklch(49.1% 0.27 292.581);
+  --color-cx-type-disc-zebra: oklch(81.1% 0.111 293.571);
+
+  /* Accent */
+  --color-cx-accent-star: oklch(68.1% 0.17 80.985);
+
+  /* Schedule */
+  --color-cx-schedule-block-rgb: 37 99 235;
+  --color-cx-schedule-preview-rgb: 234 88 12;
 }
 
 html {
@@ -99,7 +213,7 @@ html {
 /* Utilities */
 .hide-scrollbar-bg {
   &::-webkit-scrollbar-track {
-    background: transparent; 
+    background: transparent;
   }
 }
 .line-clamp-2 {
@@ -131,48 +245,20 @@ html {
   background-repeat: repeat;
 }
 
+/* Parameterized zebra-sm: override --zebra-color for colored variants */
 .bg-zebra-sm {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-border)0,var(--color-cx-border)1px,transparent 0,transparent 50%);
+  --zebra-color: var(--color-cx-border);
+  background-image: repeating-linear-gradient(315deg,var(--zebra-color)0,var(--zebra-color)1px,transparent 0,transparent 50%);
   background-size: 4px 4px;
   background-position: 0 0;
   background-repeat: repeat;
 }
 
-.bg-zebra-sm-yellow {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-yellow-700)0,var(--color-cx-yellow-700)1px,transparent 0,transparent 50%);
-  background-size: 4px 4px;
-  background-position: 0 0;
-  background-repeat: repeat;
-}
-
-.bg-zebra-sm-rose {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-rose-700)0,var(--color-cx-rose-700)1px,transparent 0,transparent 50%);
-  background-size: 4px 4px;
-  background-position: 0 0;
-  background-repeat: repeat;
-}
-
-.bg-zebra-sm-green {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-green-700)0,var(--color-cx-green-700)1px,transparent 0,transparent 50%);
-  background-size: 4px 4px;
-  background-position: 0 0;
-  background-repeat: repeat;
-}
-
-.bg-zebra-sm-blue {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-blue-700)0,var(--color-cx-blue-700)1px,transparent 0,transparent 50%);
-  background-size: 4px 4px;
-  background-position: 0 0;
-  background-repeat: repeat;
-}
-
-.bg-zebra-sm-violet {
-  background-image: repeating-linear-gradient(315deg,var(--color-cx-violet-700)0,var(--color-cx-violet-700)1px,transparent 0,transparent 50%);
-  background-size: 4px 4px;
-  background-position: 0 0;
-  background-repeat: repeat;
-}
-
+.bg-zebra-sm-danger  { --zebra-color: var(--color-cx-status-danger-zebra); }
+.bg-zebra-sm-warning { --zebra-color: var(--color-cx-status-warning-zebra); }
+.bg-zebra-sm-success { --zebra-color: var(--color-cx-status-success-zebra); }
+.bg-zebra-sm-lab     { --zebra-color: var(--color-cx-type-lab-zebra); }
+.bg-zebra-sm-disc    { --zebra-color: var(--color-cx-type-disc-zebra); }
 
 .text-sideways {
   writing-mode: vertical-rl;

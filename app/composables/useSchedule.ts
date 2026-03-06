@@ -166,7 +166,7 @@ export function useSchedule() {
 
   // Public helpers to control preview from components
   const setHoverPreviewFromString = (spec: string, label?: string, courseCode?: string) => {
-    const color = 'rgba(249, 115, 22, 0.25)' // orange, translucent
+    const color = 'rgb(var(--color-cx-schedule-preview-rgb) / 0.25)' // orange, translucent
     let parsed = parseBlocksFromString(spec, label, color, courseCode)
     if (!parsed || parsed.length === 0) {
       // try API-style
@@ -176,7 +176,7 @@ export function useSchedule() {
   }
 
   const setHoverPreviewFromSchedules = (schedules: Schedule[], label?: string, courseCode?: string) => {
-    const color = 'rgba(249, 115, 22, 0.25)'
+    const color = 'rgb(var(--color-cx-schedule-preview-rgb) / 0.25)'
     const blocks = scheduleToBlocks(schedules, label, color, courseCode)
     setPreviewBlocks(blocks)
   }

@@ -71,16 +71,16 @@ const previewBlocksByDay = (dayIndex: number) => props.previewBlocks.filter((b) 
 function styleForBlock(block: ScheduleBlock) {
   const topPct = ((block.startMinutes - START_MINUTES) / totalRange) * 100
   const heightPct = ((block.endMinutes - block.startMinutes) / totalRange) * 100
-  const color = (block.color as string) || 'rgb(var(--color-cx-blue-500-rgb) / 0.25)'
-  const border = (block.color as string) || 'rgb(var(--color-cx-blue-500-rgb) / 0.65)'
+  const color = (block.color as string) || 'rgb(var(--color-cx-schedule-block-rgb) / 0.25)'
+  const border = (block.color as string) || 'rgb(var(--color-cx-schedule-block-rgb) / 0.65)'
   return { top: `${topPct}%`, height: `${heightPct}%`, background: color, border: `1px solid ${border}` }
 }
 
 function styleForPreviewBlock(block: ScheduleBlock) {
   const topPct = ((block.startMinutes - START_MINUTES) / totalRange) * 100
   const heightPct = ((block.endMinutes - block.startMinutes) / totalRange) * 100
-  const color = (block.color as string) || 'rgb(var(--color-cx-orange-500-rgb) / 0.25)'
-  const border = 'rgb(var(--color-cx-orange-500-rgb) / 0.7)'
+  const color = (block.color as string) || 'rgb(var(--color-cx-schedule-preview-rgb) / 0.25)'
+  const border = 'rgb(var(--color-cx-schedule-preview-rgb) / 0.7)'
   return { top: `${topPct}%`, height: `${heightPct}%`, background: color, border: `1px dashed ${border}` }
 }
 </script>

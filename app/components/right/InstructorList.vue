@@ -9,9 +9,9 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-sm underline decoration-1 decoration-dashed hover:text-cx-text-muted"
-            :class="{ 'text-rose-600': item.isLow, 'text-cx-text-subtle': !item.isLow }"
+            :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }"
           >
-            <span v-if="!Number.isNaN(item.rating)" class="text-sm text-cx-text-subtle border-cx-text-secondary" :class="{ 'text-rose-600': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
+            <span v-if="!Number.isNaN(item.rating)" class="text-sm text-cx-text-subtle border-cx-text-secondary" :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
             {{ item.name }}
           </a>
           <span class="text-cx-text-muted" v-if="item !== instructorViews[instructorViews.length - 1]">,&nbsp;</span>

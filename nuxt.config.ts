@@ -7,6 +7,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/content',
     '@pinia/nuxt',
+    'nuxt-auth-utils',
   ],
   srcDir: 'app',
   components: [

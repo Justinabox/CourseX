@@ -21,8 +21,8 @@
         <div class="flex flex-col gap-1.5 border-y border-cx-border py-4">
           <InstructorList :instructors="details.instructors || []" />
           <div class="flex items-center gap-2">
-            <Icon name="uil:user" class="h-5 w-5" :class="{ 'text-rose-800': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
-            <span class="text-sm" :class="{ 'text-rose-700': details.enrolled === details.capacity, 'text-cx-text-subtle': details.enrolled !== details.capacity }">{{ details.enrolled }} / {{ details.capacity }} Students</span>
+            <Icon name="uil:user" class="h-5 w-5" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
+            <span class="text-sm" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-subtle': details.enrolled !== details.capacity }">{{ details.enrolled }} / {{ details.capacity }} Students</span>
           </div>
           <div v-if="detailScheduleLines.length > 0" class="flex items-start gap-2">
             <Icon name="uil:clock" class="h-5 w-5 text-cx-text-muted shrink-0 mt-0.5" />
