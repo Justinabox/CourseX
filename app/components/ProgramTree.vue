@@ -78,7 +78,7 @@ const filteredSchools = computed(() => {
   const search = normalize(props.query ?? '')
   const hasQuery = search.length > 0
 
-  return props.schools
+  const result = props.schools
     .map((school) => {
       if (!hasQuery) {
         return {
@@ -98,6 +98,15 @@ const filteredSchools = computed(() => {
       }
     })
     .filter((school) => school.filteredPrograms.length > 0)
+
+  // Pin "General Education" to the top of the list
+  const pinIdx = result.findIndex((s) => s.name === 'General Education')
+  if (pinIdx > 0) {
+    const [pinned] = result.splice(pinIdx, 1)
+    result.unshift(pinned)
+  }
+
+  return result
 })
 
 const isOpen = (school: School) => openSchoolKeySet.value.has(schoolKey(school))

@@ -2,6 +2,7 @@ export function normalizeString(value: string | null | undefined): string {
   return (value || '').toString().trim().toLowerCase()
 }
 
+
 export function normalizeCourseCode(value: string | null | undefined): string {
   const s = (value || '').toString().trim().toUpperCase()
   return s

@@ -49,6 +49,7 @@ export default defineNuxtConfig({
     databaseUrl: process.env.DATABASE_URL || '',
     public: {
       WORKERS_CI_COMMIT_SHA: process.env.WORKERS_CI_COMMIT_SHA || '',
+      syllabusDomain: process.env.NUXT_PUBLIC_SYLLABUS_DOMAIN || '',
     },
   },
 })

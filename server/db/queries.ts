@@ -350,6 +350,7 @@ function mapCourseDetailRow(row: any) {
     type: sections[0]?.type || null,
     ges: row.ges || [],
     isCancelled: sections.every((s: any) => s.isCancelled),
+    syllabus: sections.find((s: any) => s.syllabus)?.syllabus || null,
   }
 }
 
@@ -375,6 +376,7 @@ function mapSectionDetailRow(row: any) {
     type: row.section_type || null,
     ges: row.ges || [],
     isCancelled: row.is_cancelled ?? false,
+    syllabus: row.syllabus || null,
   }
 }
 

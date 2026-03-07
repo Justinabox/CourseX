@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { UICourse, UICourseSection } from '@/composables/useAPI'
 import type { CourseFiltersState, TriState, EnrollmentFilter } from '@/composables/api/types'
@@ -6,7 +6,7 @@ import { useScheduleStore } from '@/stores/schedule'
 import { useTermId } from '@/composables/useTermId'
 import { parseUnitsArrayToRange } from '@/composables/filters/units'
 import { normalizeString, normalizeSectionType } from '@/composables/filters/normalize'
-import { courseMatchesSearch } from '@/composables/filters/search'
+import { buildSearchHaystack } from '@/composables/filters/search'
 import { sectionMatchesEnrollment } from '@/composables/filters/enrollment'
 import { sectionMatchesScheduleFilters, sectionMatchesTriState } from '@/composables/filters/schedule'
 
@@ -60,6 +60,24 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
     conflicts: 'any',
     enrollment: 'any',
     sectionTypes: [],
+  })
+
+  // Debounce search text to avoid per-keystroke recomputation
+  const debouncedSearch = ref('')
+  let searchTimer: ReturnType<typeof setTimeout> | null = null
+  watch(() => filters.searchText, (val) => {
+    if (searchTimer) clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => { debouncedSearch.value = val }, 150)
+  })
+
+  // Pre-compute normalized haystacks (only recomputes when courses change)
+  const searchHaystacks = computed(() => {
+    const map = new Map<string, string>()
+    if (!courses) return map
+    for (const course of courses.value || []) {
+      map.set(`${course.code}::${course.title}`, buildSearchHaystack(course))
+    }
+    return map
   })
 
   const compileSectionPredicate = () => {
@@ -139,11 +157,16 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
     return true
   }
 
-  const apply = (list: UICourse[]): UICourse[] => {
+  const apply = (list: UICourse[], searchQuery: string): UICourse[] => {
     if (!list || list.length === 0) return []
+    const s = normalizeString(searchQuery)
+    const haystacks = searchHaystacks.value
     const out: UICourse[] = []
     for (const course of list) {
-      if (!courseMatchesSearch(course, filters.searchText)) continue
+      if (s) {
+        const haystack = haystacks.get(`${course.code}::${course.title}`) || ''
+        if (!haystack.includes(s)) continue
+      }
       if (!courseMatchesLevel(course, filters.courseLevelMin, filters.courseLevelMax)) continue
       const passingSections = filterSectionsForCourse(course)
       if (passingSections.length === 0) continue
@@ -154,7 +177,7 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
 
   const filteredCourses = computed<UICourse[]>(() => {
     if (!courses) return []
-    return apply(courses.value || [])
+    return apply(courses.value || [], debouncedSearch.value)
   })
 
   // Reset filters when term changes (prevents stale conflicts cache)
@@ -163,6 +186,8 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
   })
 
   const reset = () => {
+    if (searchTimer) clearTimeout(searchTimer)
+    debouncedSearch.value = ''
     filters.searchText = ''
     filters.days = []
     filters.timeStartMinutes = null

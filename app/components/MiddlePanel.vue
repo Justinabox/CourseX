@@ -21,25 +21,32 @@
     </div>
 
     <div ref="scrollContainerEl" class="w-full grow overflow-y-auto overflow-x-hidden overscroll-auto min-w-0 hide-scrollbar-bg">
-      <div class="w-full flex flex-col min-w-0">
-        <div :style="{ height: topPadding + 'px' }"></div>
+      <div class="w-full min-w-0 relative" :style="{ height: `${rowVirtualizer.getTotalSize()}px` }">
         <div
-          v-for="course in visibleItems"
-          :key="`${course.code}::${course.title}`"
+          v-for="virtualRow in rowVirtualizer.getVirtualItems()"
+          :key="String(virtualRow.key)"
+          :data-index="virtualRow.index"
+          :ref="(el) => { if (el) rowVirtualizer.measureElement(el as any) }"
+          :style="{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${virtualRow.start}px)`
+          }"
           class="pb-3"
-          :ref="(el) => onRowMeasure(el, `${course.code}::${course.title}`)"
         >
           <CourseCard
+            v-if="filteredCourses[virtualRow.index]"
             data-card
-            :title="course.title"
-            :code="course.code"
-            :description="course.description"
-            :sections="course.sections"
-            :ges="course.ges"
-            @section-click="(sid) => onSectionClick(course.code, sid)"
+            :title="filteredCourses[virtualRow.index]!.title"
+            :code="filteredCourses[virtualRow.index]!.code"
+            :description="filteredCourses[virtualRow.index]!.description"
+            :sections="filteredCourses[virtualRow.index]!.sections"
+            :ges="filteredCourses[virtualRow.index]!.ges"
+            @section-click="(sid) => onSectionClick(filteredCourses[virtualRow.index]!.code, sid)"
           />
         </div>
-        <div :style="{ height: bottomPadding + 'px' }"></div>
       </div>
     </div>
 
@@ -47,14 +54,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, onBeforeUnmount } from 'vue'
+import { computed, onMounted, ref, onBeforeUnmount, watch } from 'vue'
 import { type UICourse } from '@/composables/useAPI'
 import { useCourseFilters } from '@/composables/useCourseFilters'
 import { useCourseListSource } from '@/composables/useCourseListSource'
-import { useVariableVirtualList } from '@/composables/useVariableVirtualList'
 import { useScrollMemory } from '@/composables/useScrollMemory'
 import { useRouteMode } from '@/composables/useRouteMode'
 import FilterBar from '@/components/FilterBar.vue'
+import { useVirtualizer } from '@tanstack/vue-virtual'
 
 const router = useRouter()
 
@@ -65,39 +72,29 @@ const showFilters = ref(false)
 const { courses, mode, scopeKey } = useCourseListSource()
 const { filters, filteredCourses, reset } = useCourseFilters(courses)
 
-// Variable-height virtualization with key-based heights
-const {
-  containerRef: vContainerRef,
-  topPadding,
-  bottomPadding,
-  visibleItems,
-  onRowMeasure,
-  scheduleUpdateViewport,
-} = useVariableVirtualList<UICourse>({
-  items: filteredCourses,
-  estimateItemHeight: 120,
-  getKey: (c) => `${c.code}::${c.title}`,
-})
+// Reset filters when the user navigates to a different category
+watch(scopeKey, () => { reset() })
 
 // Scroll persistence
 const { containerRef: sContainerRef } = useScrollMemory(() => scopeKey.value)
 const scrollContainerEl = ref<HTMLElement | null>(null)
 
+// Variable-height virtualization with key-based heights
+const rowVirtualizerOptions = computed(() => ({
+  count: filteredCourses.value.length,
+  getScrollElement: () => scrollContainerEl.value,
+  estimateSize: () => 120,
+  getItemKey: (index: number) => {
+    const course = filteredCourses.value[index]
+    return course ? `${course.code}::${course.title}` : index
+  },
+  overscan: 5,
+}))
+const rowVirtualizer = useVirtualizer(rowVirtualizerOptions)
+
 onMounted(() => {
   const container = scrollContainerEl.value
-  vContainerRef.value = container as any
   sContainerRef.value = container as any
-  if (container) {
-    container.addEventListener('scroll', scheduleUpdateViewport, { passive: true })
-  }
-  scheduleUpdateViewport()
-})
-
-onBeforeUnmount(() => {
-  const container = scrollContainerEl.value
-  if (container) {
-    container.removeEventListener('scroll', scheduleUpdateViewport)
-  }
 })
 
 // Click to navigate

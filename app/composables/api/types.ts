@@ -46,6 +46,7 @@ export type CourseDetails = {
   type: SectionMode | null
   ges: GECode[]
   isCancelled: boolean
+  syllabus: string | null
 }
 
 // Shared app-level types (centralized)

@@ -19,6 +19,14 @@
         </div>
 
         <div class="flex flex-col gap-1.5 border-y border-cx-border py-4">
+          <div v-if="syllabusUrl" class="flex justify-start gap-2">
+            <Icon name="uil:file-alt" class="h-5 w-5 text-cx-text-muted shrink-0" />
+            <a :href="syllabusUrl" target="_blank" rel="noopener noreferrer" class="text-sm text-cx-text-subtle hover:underline decoration-1 hover:text-cx-text-muted flex items-center gap-1">
+              Syllabus available
+              <Icon name="lucide:external-link" class="h-3.5 w-3.5 shrink-0" />
+            </a>
+          </div>
+
           <InstructorList :instructors="details.instructors || []" />
           <div class="flex justify-start gap-2">
             <Icon name="uil:user" class="h-5 w-5 shrink-0" :class="{ 'text-cx-status-danger-emphasis': details.enrolled === details.capacity, 'text-cx-text-muted': details.enrolled !== details.capacity }" />
@@ -90,6 +98,13 @@ watch(
   () => { loadDetails() },
   { immediate: true }
 )
+
+const runtimeConfig = useRuntimeConfig()
+const syllabusUrl = computed(() => {
+  const d = details.value
+  if (!d?.syllabus || !runtimeConfig.public.syllabusDomain) return null
+  return `${runtimeConfig.public.syllabusDomain}/syllabi/${termId.value}/${d.syllabus}`
+})
 
 const detailScheduleLines = computed(() => formatDetailScheduleLines(details.value?.schedules || []))
 const hasMultipleSchedules = computed(() => (details.value?.schedules || []).length > 1)

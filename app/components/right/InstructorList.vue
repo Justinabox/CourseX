@@ -9,11 +9,12 @@
             :href="item.link"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-sm underline decoration-1 decoration-dashed hover:text-cx-text-muted"
+            class="text-sm hover:underline decoration-1 hover:text-cx-text-muted inline-flex items-center gap-1"
             :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }"
           >
             <span v-if="!Number.isNaN(item.rating)" class="text-sm border-cx-text-secondary" :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-subtle': !item.isLow }">{{ item.rating.toFixed(1) }}</span>
             {{ item.name }}
+            <Icon name="lucide:external-link" class="h-3.5 w-3.5 shrink-0" />
           </a>
           <span
             v-else
