@@ -6,8 +6,8 @@ export default defineEventHandler(async (event) => {
   const userId = await resolveUserId(event)
   const termId = validateTermCode(getRouterParam(event, 'termId') || '')
 
-  const body = await readBody(event)
-  const sectionId = body?.sectionId
+  const query = getQuery(event)
+  const sectionId = Number(query.sectionId)
   if (typeof sectionId !== 'number' || !Number.isInteger(sectionId) || sectionId <= 0 || sectionId >= 2147483647) {
     throw createError({ statusCode: 400, statusMessage: 'Body must contain sectionId: positive integer' })
   }

@@ -112,7 +112,7 @@ export async function postWatchlistKey(termId: string, key: string): Promise<str
 export async function deleteWatchlistKey(termId: string, key: string): Promise<string[]> {
   const res = await $fetch<{ keys: string[] }>(`/api/user/watchlist/${termId}`, {
     method: 'DELETE',
-    body: { key },
+    query: { key },
   })
   return res.keys
 }
@@ -140,7 +140,7 @@ export async function postScheduleSectionId(termId: string, sectionId: number): 
 export async function deleteScheduleSectionId(termId: string, sectionId: number): Promise<number[]> {
   const res = await $fetch<{ sectionIds: number[] }>(`/api/user/schedule/${termId}`, {
     method: 'DELETE',
-    body: { sectionId },
+    query: { sectionId },
   })
   return res.sectionIds
 }
