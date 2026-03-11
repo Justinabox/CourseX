@@ -60,6 +60,7 @@ export function sectionsTable(term: string) {
   return pgTable(`sections_${term}`, {
     id: integer('id').primaryKey(),
     // type column uses sectionmode enum — cast to text in raw SQL queries
+    title: text('title'),
     description: text('description'),
     note: text('note'),
     dClearance: boolean('d_clearance').notNull(),

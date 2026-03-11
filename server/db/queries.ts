@@ -49,6 +49,7 @@ export async function queryCoursesByTerm(termId: string) {
       to_jsonb(c.registrar_code) as registrar_code,
       json_agg(DISTINCT jsonb_build_object(
         'sectionId',       s.id::text,
+        'sectionTitle',    s.title,
         'type',            s.type::text,
         'enrolled',        s.registered_seat,
         'capacity',        s.total_seat,
@@ -71,7 +72,7 @@ export async function queryCoursesByTerm(termId: string) {
     ORDER BY c.id
   `
 
-  return rows.map(mapCourseRow)
+  return rows.flatMap(splitCourseRowByTitle)
 }
 
 // ─── Courses by school/program ─────────────────────────────────────────────
@@ -92,6 +93,7 @@ export async function queryCoursesByProgram(termId: string, programPrefix: strin
       to_jsonb(c.registrar_code) as registrar_code,
       json_agg(DISTINCT jsonb_build_object(
         'sectionId',       s.id::text,
+        'sectionTitle',    s.title,
         'type',            s.type::text,
         'enrolled',        s.registered_seat,
         'capacity',        s.total_seat,
@@ -115,12 +117,12 @@ export async function queryCoursesByProgram(termId: string, programPrefix: strin
     ORDER BY c.id
   `
 
-  return rows.map(mapCourseRow)
+  return rows.flatMap(splitCourseRowByTitle)
 }
 
 // ─── Single course detail ──────────────────────────────────────────────────
 
-export async function queryCourseDetail(termId: string, courseId: string) {
+export async function queryCourseDetail(termId: string, courseId: string, title?: string) {
   validateTermCode(termId)
   const sql = useSql()
 
@@ -141,6 +143,7 @@ export async function queryCourseDetail(termId: string, courseId: string) {
       to_jsonb(c.restrictions) as restrictions,
       json_agg(DISTINCT jsonb_build_object(
         'sectionId',       s.id::text,
+        'sectionTitle',    s.title,
         'type',            s.type::text,
         'description',     s.description,
         'note',            s.note,
@@ -166,7 +169,20 @@ export async function queryCourseDetail(termId: string, courseId: string) {
   `
 
   if (rows.length === 0) return null
-  return mapCourseDetailRow(rows[0])
+
+  const row = rows[0]!
+  if (title) {
+    const titleUpper = title.trim().toUpperCase()
+    const sections = row.sections || []
+    row.sections = sections.filter((s: any) => {
+      const effectiveTitle = ((s.sectionTitle || '').trim() || row.title).toUpperCase()
+      return effectiveTitle === titleUpper
+    })
+    if (row.sections.length > 0) {
+      return mapCourseDetailRow(row, title.trim())
+    }
+  }
+  return mapCourseDetailRow(row)
 }
 
 // ─── Single section detail ─────────────────────────────────────────────────
@@ -189,6 +205,7 @@ export async function querySectionDetail(termId: string, sectionId: string) {
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,
       s.id as section_id,
+      s.title as section_title,
       s.type::text as section_type,
       s.registered_seat as enrolled,
       s.total_seat as capacity,
@@ -230,6 +247,7 @@ export async function querySectionsBatch(termId: string, sectionIds: number[]) {
       to_jsonb(c.corequisites) as corequisites,
       to_jsonb(c.restrictions) as restrictions,
       s.id as section_id,
+      s.title as section_title,
       s.type::text as section_type,
       s.registered_seat as enrolled,
       s.total_seat as capacity,
@@ -289,6 +307,39 @@ function attachInstructorsToSections(
   }))
 }
 
+function splitCourseRowByTitle(row: any): any[] {
+  const sections = attachInstructorsToSections(row.sections || [], row.section_instructors)
+
+  const groups: Record<string, { title: string; sections: any[] }> = {}
+  for (const s of sections) {
+    const effectiveTitle = (s.sectionTitle || '').trim() || row.title
+    const groupKey = effectiveTitle.toUpperCase()
+    if (!groups[groupKey]) groups[groupKey] = { title: effectiveTitle, sections: [] }
+    groups[groupKey].sections.push(s)
+  }
+
+  return Object.values(groups).map(group => ({
+    title: group.title,
+    code: row.id,
+    description: row.description || '',
+    ges: row.ges || [],
+    sections: group.sections.map((s: any) => ({
+      sectionId: String(s.sectionId),
+      instructors: s.instructors,
+      enrolled: s.enrolled ?? 0,
+      capacity: s.capacity ?? 0,
+      waitlisted: s.waitlisted ?? 0,
+      schedules: s.schedules || [],
+      hasDClearance: s.hasDClearance ?? false,
+      hasPrerequisites: (row.prerequisites?.length ?? 0) > 0,
+      hasDuplicatedCredit: !!row.dupe_credit_comment,
+      units: s.units || [],
+      type: s.type || null,
+      isCancelled: s.isCancelled ?? false,
+    })),
+  }))
+}
+
 function mapCourseRow(row: any) {
   const sections = attachInstructorsToSections(
     row.sections || [],
@@ -317,7 +368,7 @@ function mapCourseRow(row: any) {
   }
 }
 
-function mapCourseDetailRow(row: any) {
+function mapCourseDetailRow(row: any, titleOverride?: string) {
   const sections = attachInstructorsToSections(
     row.sections || [],
     row.section_instructors,
@@ -331,7 +382,7 @@ function mapCourseDetailRow(row: any) {
   const totalWaitlisted = sections.reduce((sum: number, s: any) => sum + (s.waitlisted ?? 0), 0)
 
   return {
-    title: row.title,
+    title: titleOverride || row.title,
     code: row.id,
     description: row.description || '',
     instructors: allInstructors,
@@ -357,7 +408,7 @@ function mapCourseDetailRow(row: any) {
 function mapSectionDetailRow(row: any) {
   return {
     sectionId: String(row.section_id),
-    title: row.title,
+    title: (row.section_title || '').trim() || row.title,
     code: row.course_id,
     description: row.course_description || '',
     instructors: row.instructors || [],
@@ -419,6 +470,7 @@ export async function queryWatchlistCourses(termCode: string, courseKeys: string
       to_jsonb(c.registrar_code) as registrar_code,
       json_agg(DISTINCT jsonb_build_object(
         'sectionId',       s.id::text,
+        'sectionTitle',    s.title,
         'type',            s.type::text,
         'enrolled',        s.registered_seat,
         'capacity',        s.total_seat,
@@ -442,7 +494,7 @@ export async function queryWatchlistCourses(termCode: string, courseKeys: string
     ORDER BY c.id
   `
 
-  return rows.map(mapCourseRow)
+  return rows.flatMap(splitCourseRowByTitle)
 }
 
 export function hydrateScheduleCourses(sectionDetails: any[]) {

@@ -41,10 +41,12 @@ export async function getSchoolCourses(termId: string, schoolPrefix: string, pro
   }
 }
 
-export async function getCourseDetails(termId: string, courseCode: string): Promise<CourseDetails | null> {
+export async function getCourseDetails(termId: string, courseCode: string, title?: string): Promise<CourseDetails | null> {
   if (!courseCode) return null
   try {
-    return await $fetch<CourseDetails>(`/api/courses/${termId}/${encodeURIComponent(courseCode)}`)
+    return await $fetch<CourseDetails>(`/api/courses/${termId}/${encodeURIComponent(courseCode)}`, {
+      query: title ? { title } : undefined,
+    })
   } catch {
     return null
   }
