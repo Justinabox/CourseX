@@ -23,12 +23,12 @@ export const useWatchlistStore = defineStore('watchlist', () => {
 
   function keyFor(term: string) { return `cx:watchlist:${term}` }
 
-  function normalizeKeysRaw(raw: unknown): { keys: string[]; migrated: boolean } {
+  function normalizeKeysRaw(raw: unknown, term: string): { keys: string[]; migrated: boolean } {
     try {
       const obj: any = raw || {}
-      let value: any = (obj && obj.watchlistsByTerm && obj.watchlistsByTerm[termId.value]) ? obj.watchlistsByTerm[termId.value] : obj
-      if (value && value.watchlistsByTerm && value.watchlistsByTerm[termId.value]) {
-        value = value.watchlistsByTerm[termId.value]
+      let value: any = (obj && obj.watchlistsByTerm && obj.watchlistsByTerm[term]) ? obj.watchlistsByTerm[term] : obj
+      if (value && value.watchlistsByTerm && value.watchlistsByTerm[term]) {
+        value = value.watchlistsByTerm[term]
       }
 
       if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
@@ -81,28 +81,30 @@ export const useWatchlistStore = defineStore('watchlist', () => {
     }
   }
 
-  function currentMap(): Record<string, UICourse> {
-    return byTerm.value[termId.value] || {}
+  function currentMap(term?: string): Record<string, UICourse> {
+    return byTerm.value[term ?? termId.value] || {}
   }
 
-  function setCurrentMap(next: Record<string, UICourse>) {
-    byTerm.value = { ...byTerm.value, [termId.value]: next }
+  function setCurrentMap(next: Record<string, UICourse>, term?: string) {
+    const t = term ?? termId.value
+    byTerm.value = { ...byTerm.value, [t]: next }
     triggerRef(byTerm)
   }
 
-  function currentKeys(): string[] {
-    return keysByTerm.value[termId.value] || []
+  function currentKeys(term?: string): string[] {
+    return keysByTerm.value[term ?? termId.value] || []
   }
 
-  function setCurrentKeys(next: string[]) {
-    keysByTerm.value = { ...keysByTerm.value, [termId.value]: next }
+  function setCurrentKeys(next: string[], term?: string) {
+    const t = term ?? termId.value
+    keysByTerm.value = { ...keysByTerm.value, [t]: next }
     triggerRef(keysByTerm)
   }
 
-  async function hydrateForCurrentTerm() {
+  async function hydrateForTerm(term: string) {
     try {
-      const allCourses = await listAllCourses(termId.value)
-      const keys = currentKeys()
+      const allCourses = await listAllCourses(term)
+      const keys = currentKeys(term)
       const map: Record<string, UICourse> = {}
 
       for (const course of allCourses) {
@@ -112,51 +114,58 @@ export const useWatchlistStore = defineStore('watchlist', () => {
         }
       }
 
-      setCurrentMap(map)
+      setCurrentMap(map, term)
     } catch {
-      setCurrentMap({})
+      setCurrentMap({}, term)
     }
   }
 
   if (process.client) {
     onMounted(() => {
       const loadFromStorageForCurrentTerm = async () => {
+        // Capture term at start to avoid race conditions with async operations
+        const term = termId.value
+
         let localKeys: string[] = []
         try {
-          const raw = localStorage.getItem(keyFor(termId.value))
+          const raw = localStorage.getItem(keyFor(term))
           if (raw != null) {
             const parsed = JSON.parse(raw)
-            const { keys, migrated } = normalizeKeysRaw(parsed)
+            const { keys, migrated } = normalizeKeysRaw(parsed, term)
             localKeys = keys
             if (migrated) {
-              try { localStorage.setItem(keyFor(termId.value), JSON.stringify({ watchlistsByTerm: { [termId.value]: keys } })) } catch {}
+              try { localStorage.setItem(keyFor(term), JSON.stringify({ watchlistsByTerm: { [term]: keys } })) } catch {}
             }
           }
         } catch {}
 
         if (loggedIn.value) {
           try {
-            const { keys: serverKeys, courses: serverCourses } = await fetchWatchlistData(termId.value)
+            const { keys: serverKeys, courses: serverCourses } = await fetchWatchlistData(term)
+            // Bail out if term changed during fetch
+            if (termId.value !== term) return
+
             const merged = [...new Set([...serverKeys, ...localKeys])]
-            setCurrentKeys(merged)
+            setCurrentKeys(merged, term)
             const map: Record<string, UICourse> = {}
             for (const course of serverCourses) {
               const key = `${normalizeCourseCode(course.code)}::${course.title.trim().toUpperCase()}`
               if (merged.includes(key)) map[key] = course
             }
-            setCurrentMap(map)
+            setCurrentMap(map, term)
             if (localKeys.length > 0 && merged.length > serverKeys.length) {
-              await enqueue(() => putWatchlistKeys(termId.value, merged))
-              await hydrateForCurrentTerm()
+              await enqueue(() => putWatchlistKeys(term, merged))
+              if (termId.value !== term) return
+              await hydrateForTerm(term)
             }
-            try { localStorage.removeItem(keyFor(termId.value)) } catch {}
+            try { localStorage.removeItem(keyFor(term)) } catch {}
           } catch {
-            setCurrentKeys(localKeys)
-            await hydrateForCurrentTerm()
+            setCurrentKeys(localKeys, term)
+            await hydrateForTerm(term)
           }
         } else {
-          setCurrentKeys(localKeys)
-          await hydrateForCurrentTerm()
+          setCurrentKeys(localKeys, term)
+          await hydrateForTerm(term)
         }
       }
 
@@ -172,7 +181,7 @@ export const useWatchlistStore = defineStore('watchlist', () => {
         const list = Array.isArray(v) ? v : []
         const normalized = list.map((k) => (k || '').toString().trim()).filter(Boolean)
         try { localStorage.setItem(keyFor(termId.value), JSON.stringify({ watchlistsByTerm: { [termId.value]: normalized } })) } catch {}
-        hydrateForCurrentTerm()
+        hydrateForTerm(termId.value)
       }, { deep: true })
     })
   }

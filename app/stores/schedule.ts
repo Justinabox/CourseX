@@ -72,22 +72,23 @@ export const useScheduleStore = defineStore('schedule', () => {
     }
   }
 
-  function currentMap(): Record<string, UICourse> {
-    return byTerm.value[termId.value] || {}
+  function currentMap(term?: string): Record<string, UICourse> {
+    return byTerm.value[term ?? termId.value] || {}
   }
 
-  function setCurrentMap(next: Record<string, UICourse>) {
-    byTerm.value = { ...byTerm.value, [termId.value]: next }
+  function setCurrentMap(next: Record<string, UICourse>, term?: string) {
+    const t = term ?? termId.value
+    byTerm.value = { ...byTerm.value, [t]: next }
     // Force trigger: ensure Vue sees the ref value replacement
     triggerRef(byTerm)
   }
 
-  function currentPairs(): SchedulePair[] {
-    return pairsByTerm.value[termId.value] || []
+  function currentPairs(term?: string): SchedulePair[] {
+    return pairsByTerm.value[term ?? termId.value] || []
   }
 
-  function setCurrentPairs(next: SchedulePair[]) {
-    pairsByTerm.value = { ...pairsByTerm.value, [termId.value]: next }
+  function setCurrentPairs(next: SchedulePair[], term?: string) {
+    pairsByTerm.value = { ...pairsByTerm.value, [term ?? termId.value]: next }
   }
 
   function pairsToSectionIds(pairs: SchedulePair[]): number[] {
@@ -100,36 +101,42 @@ export const useScheduleStore = defineStore('schedule', () => {
     return `${normalizeCourseCode(code)}::${title.trim().toUpperCase()}`
   }
 
-  async function hydrateForCurrentTerm() {
+  async function hydrateForTerm(term: string) {
     try {
-      const pairs = currentPairs()
-      const hydrated = await hydrateScheduledCourses(pairs, termId.value)
-      setCurrentMap(hydrated)
+      const pairs = currentPairs(term)
+      const hydrated = await hydrateScheduledCourses(pairs, term)
+      setCurrentMap(hydrated, term)
     } catch {
-      setCurrentMap({})
+      setCurrentMap({}, term)
     }
   }
 
   if (process.client) {
     onMounted(() => {
       const loadFromStorageForCurrentTerm = async () => {
+        // Capture term at start to avoid race conditions with async operations
+        const term = termId.value
+
         // Load localStorage data
         let localPairs: SchedulePair[] = []
         try {
-          const raw = localStorage.getItem(keyFor(termId.value))
+          const raw = localStorage.getItem(keyFor(term))
           if (raw != null) {
             const parsed = JSON.parse(raw)
-            const { pairs, migrated } = normalizePairsRaw(parsed, termId.value)
+            const { pairs, migrated } = normalizePairsRaw(parsed, term)
             localPairs = pairs
             if (migrated) {
-              try { localStorage.setItem(keyFor(termId.value), JSON.stringify({ schedulesByTerm: { [termId.value]: pairs } })) } catch {}
+              try { localStorage.setItem(keyFor(term), JSON.stringify({ schedulesByTerm: { [term]: pairs } })) } catch {}
             }
           }
         } catch {}
 
         if (loggedIn.value) {
           try {
-            const { sectionIds: serverSectionIds, courses: serverCourses } = await fetchScheduleData(termId.value)
+            const { sectionIds: serverSectionIds, courses: serverCourses } = await fetchScheduleData(term)
+            // Bail out if term changed during fetch
+            if (termId.value !== term) return
+
             const localSectionIds = pairsToSectionIds(localPairs)
             const mergedIds = [...new Set([...serverSectionIds, ...localSectionIds])]
 
@@ -155,24 +162,25 @@ export const useScheduleStore = defineStore('schedule', () => {
               }
             }
 
-            setCurrentMap(courseMap)
-            setCurrentPairs(mergedPairs)
+            setCurrentMap(courseMap, term)
+            setCurrentPairs(mergedPairs, term)
 
             // If local had extra IDs, push merged set and re-hydrate those
             if (localSectionIds.length > 0 && mergedIds.length > serverSectionIds.length) {
-              await enqueue(() => putScheduleSectionIds(termId.value, mergedIds))
-              await hydrateForCurrentTerm()
+              await enqueue(() => putScheduleSectionIds(term, mergedIds))
+              if (termId.value !== term) return
+              await hydrateForTerm(term)
             }
 
             // Clear localStorage
-            try { localStorage.removeItem(keyFor(termId.value)) } catch {}
+            try { localStorage.removeItem(keyFor(term)) } catch {}
           } catch {
-            setCurrentPairs(localPairs)
-            await hydrateForCurrentTerm()
+            setCurrentPairs(localPairs, term)
+            await hydrateForTerm(term)
           }
         } else {
-          setCurrentPairs(localPairs)
-          await hydrateForCurrentTerm()
+          setCurrentPairs(localPairs, term)
+          await hydrateForTerm(term)
         }
       }
 
@@ -206,7 +214,7 @@ export const useScheduleStore = defineStore('schedule', () => {
           .map((p) => ({ code: normalizeCourseCode((p?.code || '').toString()), sectionId: normalizeSectionId((p?.sectionId || '').toString()) }))
           .filter((p) => p.code && p.sectionId)
         try { localStorage.setItem(keyFor(termId.value), JSON.stringify({ schedulesByTerm: { [termId.value]: normalized } })) } catch {}
-        hydrateForCurrentTerm()
+        hydrateForTerm(termId.value)
       }, { deep: true })
 
       watch(manualBlocks, (v) => {
