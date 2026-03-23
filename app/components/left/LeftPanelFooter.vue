@@ -4,7 +4,7 @@
       <SettingsPopover />
     </div>
     <div class="flex flex-1 items-center justify-center px-2 text-md text-cx-text-subtle w-full">
-      <select :value="termId" @change="onTermChange" aria-label="Select term" class="w-full select-plain bg-transparent outline-none rounded-md px-2 py-1 appearance-none cursor-pointer transition-colors hover:text-cx-text hover:bg-cx-surface-700/20">
+      <select v-model="selectedTermId" aria-label="Select term" class="w-full select-plain bg-transparent outline-none rounded-md px-2 py-1 appearance-none cursor-pointer transition-colors hover:text-cx-text hover:bg-cx-surface-700/20">
         <option v-for="t in terms" :key="t.termCode" :value="String(t.termCode)">{{ t.year }} {{ t.season }}</option>
       </select>
     </div>
@@ -43,6 +43,16 @@ const themeIcon = computed(() => {
 
 const preferenceLabel = computed(() => getPreference())
 
+const selectedTermId = computed({
+  get: () => termId.value,
+  set: (selected: string) => {
+    if (!/^\d{5}$/.test(selected)) return
+    const slug = (route.params.slug as string[] | undefined) || []
+    const nextPath = ['/course', selected, ...slug].join('/')
+    router.push(nextPath)
+  },
+})
+
 function cycleTheme() {
   const order: ModePref[] = ['system', 'dark', 'light']
   const current = getPreference()
@@ -50,12 +60,4 @@ function cycleTheme() {
   colorMode.preference = order[idx] ?? 'system'
 }
 
-function onTermChange(e: Event) {
-  const target = e.target as HTMLSelectElement | null
-  const selected = (target?.value || '').toString()
-  if (!/^\d{5}$/.test(selected)) return
-  const slug = (route.params.slug as string[] | undefined) || []
-  const nextPath = ['/course', selected, ...slug].join('/')
-  router.push(nextPath)
-}
 </script>

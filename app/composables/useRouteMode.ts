@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { useTermId } from '@/composables/useTermId'
 
 export type ModeAll = { mode: 'all'; courseCode: string | null; sectionId: string | null }
 export type ModeScheduled = { mode: 'scheduled'; courseCode: string | null; sectionId: string | null }
@@ -9,6 +10,7 @@ export type RouteMode = ModeAll | ModeScheduled | ModeWatchlist | ModeProgram | 
 
 export function useRouteMode() {
   const route = useRoute()
+  const { termId: resolvedTermId } = useTermId()
   const term = computed(() => (route.params as any)?.termId as string | undefined)
 
   const mode = computed<RouteMode>(() => {
@@ -32,7 +34,7 @@ export function useRouteMode() {
   })
 
   function makeSelectionPath(target: RouteMode, code: string, sectionId: string | null): string {
-    const t = term.value || '20261'
+    const t = term.value || resolvedTermId.value
     if (target.mode === 'all' || target.mode === 'unknown') {
       return `/course/${t}/all/${encodeURIComponent(code)}/${encodeURIComponent(sectionId || 'section')}`
     }

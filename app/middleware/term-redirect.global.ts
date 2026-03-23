@@ -1,17 +1,23 @@
-import { useTerms } from '@/composables/useTerms'
+interface Term { termCode: number; season: string; year: number; status: string }
 
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path || ''
   if (!path.startsWith('/course')) return
-  // Expected: /course/<termId>/...
+
   const parts = path.split('/')
-  // ['', 'course', maybeTerm, ...rest]
   const maybeTerm = parts[2] || ''
-  const isFiveDigit = /^\d{5}$/.test(maybeTerm)
-  if (isFiveDigit) return
-  const { activeTermCode } = useTerms()
-  const rest = parts.slice(2).join('/') // could be '' or 'all/..'
-  const next = ['/course', activeTermCode.value, rest].filter(Boolean).join('/')
+  if (/^\d{5}$/.test(maybeTerm)) return
+
+  const { data: terms } = await useAsyncData('terms', () => $fetch<Term[]>('/api/terms'), {
+    default: () => [] as Term[],
+  })
+
+  const active = terms.value.find((t) => t.status === 'Active')
+  const termCode = String(active?.termCode ?? terms.value[0]?.termCode ?? '')
+  if (!termCode) return
+
+  const rest = parts.slice(2).join('/')
+  const next = ['/course', termCode, rest].filter(Boolean).join('/')
   return navigateTo(next, { redirectCode: 302 })
 })
 

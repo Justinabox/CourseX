@@ -7,7 +7,7 @@ export function useTerms() {
 
   const activeTermCode = computed(() => {
     const active = terms.value.find((t) => t.status === 'Active')
-    return String(active?.termCode ?? terms.value[0]?.termCode ?? '20261')
+    return String(active?.termCode ?? terms.value[0]?.termCode ?? '')
   })
 
   function termLabel(termCode: number | string) {

@@ -16,13 +16,13 @@ export function normalizeSectionId(value: string | null | undefined): string {
 export function normalizeSectionType(raw: string | null | undefined): string {
   const t = normalizeString(raw)
   if (!t) return ''
-  // Handle common shorthands
   if (t === 'disc' || t === 'dis' || t === 'discussion') return 'discussion'
   if (t === 'lec' || t === 'lecture') return 'lecture'
   if (t === 'lab') return 'lab'
-  // Handle composite types like "lecture/lab", "lec/lab", "lecture & lab"
+  if (t === 'qz' || t === 'quiz') return 'quiz'
   const composite = t.replace(/\s+/g, '')
-  if (/(^|[^a-z])(lec|lecture)\/(lab)([^a-z]|$)/.test(composite) || /(^|[^a-z])(lecture)(and|&|\/)\s*(lab)([^a-z]|$)/.test(t)) return 'lecture'
-  if (/(^|[^a-z])(lab)\/(lec|lecture)([^a-z]|$)/.test(composite) || /(^|[^a-z])(lab)(and|&|\/)\s*(lecture)([^a-z]|$)/.test(t)) return 'lecture'
+  if (/\b(lec(ture)?)\b/.test(composite)) return 'lecture'
+  if (/\b(lab)\b/.test(composite)) return 'lab'
+  if (/\b(dis(c(ussion)?)?)\b/.test(composite)) return 'discussion'
   return t
 }

@@ -131,21 +131,22 @@ export function useCourseFilters(courses?: Ref<UICourse[]>) {
     }
 
     const isLecture = (s: UICourseSection) => normalizeSectionType(s.type) === 'lecture'
-    const isSpecial = (s: UICourseSection) => {
+    const isAuxiliary = (s: UICourseSection) => {
       const t = normalizeSectionType(s.type)
-      return t === 'lab' || t === 'discussion'
+      return t === 'lab' || t === 'discussion' || t === 'quiz'
     }
     const sectionPasses = compileSectionPredicate()
 
-    // Gate by lecture only: find lectures that satisfy all active predicates
     const lecturesPassing: UICourseSection[] = sections.filter((s) => isLecture(s) && sectionPasses(s))
-    if (lecturesPassing.length === 0) return []
 
-    // If any lecture passes, include all labs/discussions regardless of conflicts or schedule
-    const specialsIncluded: UICourseSection[] = sections.filter((s) => isSpecial(s))
+    if (lecturesPassing.length > 0) {
+      const auxiliaries: UICourseSection[] = sections.filter((s) => isAuxiliary(s))
+      return [...lecturesPassing, ...auxiliaries]
+    }
 
-    // Include only the passing lectures (do not include other non-special types here)
-    return [...lecturesPassing, ...specialsIncluded]
+    // No lectures found — include any section that passes predicates so
+    // courses with only non-lecture types (e.g. Quiz) are not silently hidden.
+    return sections.filter(sectionPasses)
   }
 
   const courseMatchesLevel = (course: UICourse, min: number | null, max: number | null): boolean => {
