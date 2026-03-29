@@ -663,7 +663,12 @@ export async function queryPipelineMetaTimestamp(key: string): Promise<string | 
 
 // ─── Syllabus Map ──────────────────────────────────────────────────────────
 
-export async function queryPreviousSyllabus(
+/**
+ * Look up the stored syllabus for a (courseId, sectionTitle) pair from any
+ * term other than currentTermCode.  The map stores only the single most-recent
+ * known syllabus, so we just check that it isn't from the current term.
+ */
+export async function queryOtherSemesterSyllabus(
   courseId: string,
   sectionTitle: string,
   currentTermCode: number
@@ -674,9 +679,7 @@ export async function queryPreviousSyllabus(
     FROM syllabus_map
     WHERE course_id = ${courseId}
       AND section_title = ${sectionTitle}
-      AND term_code < ${currentTermCode}
-    ORDER BY term_code DESC
-    LIMIT 1
+      AND term_code != ${currentTermCode}
   `
   if (!rows.length) return null
   return { termCode: rows[0].term_code as number, filename: rows[0].filename as string }

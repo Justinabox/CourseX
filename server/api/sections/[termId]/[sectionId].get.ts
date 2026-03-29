@@ -1,4 +1,4 @@
-import { querySectionDetail, queryPreviousSyllabus } from '~~/server/db/queries'
+import { querySectionDetail, queryOtherSemesterSyllabus } from '~~/server/db/queries'
 import { validateTermCode } from '~~/server/utils/termValidator'
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   let previousSyllabus: { termCode: number; filename: string } | null = null
   if (!detail.syllabus) {
-    previousSyllabus = await queryPreviousSyllabus(
+    previousSyllabus = await queryOtherSemesterSyllabus(
       detail.code,
       detail.title,
       parseInt(termId, 10)
