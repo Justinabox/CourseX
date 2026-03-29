@@ -660,3 +660,24 @@ export async function queryPipelineMetaTimestamp(key: string): Promise<string | 
   const rows = await sql`SELECT updated_at FROM pipeline_meta WHERE key = ${key}`
   return rows.length > 0 ? (rows[0].updated_at as string) : null
 }
+
+// ─── Syllabus Map ──────────────────────────────────────────────────────────
+
+export async function queryPreviousSyllabus(
+  courseId: string,
+  sectionTitle: string,
+  currentTermCode: number
+): Promise<{ termCode: number; filename: string } | null> {
+  const sql = useSql()
+  const rows = await sql`
+    SELECT term_code, filename
+    FROM syllabus_map
+    WHERE course_id = ${courseId}
+      AND section_title = ${sectionTitle}
+      AND term_code < ${currentTermCode}
+    ORDER BY term_code DESC
+    LIMIT 1
+  `
+  if (!rows.length) return null
+  return { termCode: rows[0].term_code as number, filename: rows[0].filename as string }
+}

@@ -1,4 +1,4 @@
-import { queryCourseDetail } from '~~/server/db/queries'
+import { queryCourseDetail, queryPreviousSyllabus } from '~~/server/db/queries'
 import { validateTermCode } from '~~/server/utils/termValidator'
 
 export default defineEventHandler(async (event) => {
@@ -9,5 +9,15 @@ export default defineEventHandler(async (event) => {
   const title = getQuery(event).title as string | undefined
   const detail = await queryCourseDetail(termId, courseId, title)
   if (!detail) throw createError({ statusCode: 404, statusMessage: 'Course not found' })
-  return detail
+
+  let previousSyllabus: { termCode: number; filename: string } | null = null
+  if (!detail.syllabus) {
+    previousSyllabus = await queryPreviousSyllabus(
+      detail.code,
+      detail.title,
+      parseInt(termId, 10)
+    )
+  }
+
+  return { ...detail, previousSyllabus }
 })

@@ -26,6 +26,13 @@
               <Icon name="lucide:external-link" class="h-3.5 w-3.5 shrink-0" />
             </a>
           </div>
+          <div v-else-if="previousSyllabusUrl" class="flex justify-start gap-2">
+            <Icon name="uil:file-alt" class="h-5 w-5 text-cx-text-muted shrink-0 opacity-60" />
+            <a :href="previousSyllabusUrl" target="_blank" rel="noopener noreferrer" class="text-sm text-cx-text-subtle hover:underline decoration-1 hover:text-cx-text-muted flex items-center gap-1 opacity-80">
+              Syllabus for previous semester available
+              <Icon name="lucide:external-link" class="h-3.5 w-3.5 shrink-0" />
+            </a>
+          </div>
 
           <InstructorList :instructors="details.instructors || []" />
           <div class="flex justify-start gap-2">
@@ -104,6 +111,11 @@ const syllabusUrl = computed(() => {
   const d = details.value
   if (!d?.syllabus || !runtimeConfig.public.syllabusDomain) return null
   return `${runtimeConfig.public.syllabusDomain}/syllabi/${termId.value}/${d.syllabus}`
+})
+const previousSyllabusUrl = computed(() => {
+  const d = details.value
+  if (!d?.previousSyllabus || !runtimeConfig.public.syllabusDomain) return null
+  return `${runtimeConfig.public.syllabusDomain}/syllabi/${d.previousSyllabus.termCode}/${d.previousSyllabus.filename}`
 })
 
 const detailScheduleLines = computed(() => formatDetailScheduleLines(details.value?.schedules || []))

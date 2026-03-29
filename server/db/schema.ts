@@ -1,5 +1,19 @@
 import { pgTable, varchar, text, boolean, smallint, integer, real, timestamp, primaryKey, index } from 'drizzle-orm/pg-core'
 
+// ─── Cross-Term Tables ──────────────────────────────────────────────────────
+
+export const syllabusMap = pgTable('syllabus_map', {
+  courseId: varchar('course_id', { length: 16 }).notNull(),
+  sectionTitle: text('section_title').notNull(),
+  termCode: integer('term_code').notNull(),
+  filename: text('filename').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.courseId, t.sectionTitle, t.termCode] }),
+  index('syllabus_map_course_id_idx').on(t.courseId),
+  index('syllabus_map_course_title_idx').on(t.courseId, t.sectionTitle),
+])
+
 // ─── Static Tables ───────────────────────────────────────────────────────────
 
 export const schools = pgTable('schools', {
