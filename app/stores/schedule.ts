@@ -5,7 +5,7 @@ import type { UICourse, UICourseSection, SchedulePair, Schedule } from '@/compos
 import { scheduleToBlocks, type ScheduleBlock } from '@/composables/scheduleUtils'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
 import { hydrateScheduledCourses } from '@/composables/scheduleHydration'
-import { fetchScheduleData, putScheduleSectionIds, postScheduleSectionId, deleteScheduleSectionId } from '@/composables/api/queries'
+import { fetchScheduleData, putScheduleEntries, postScheduleEntry, deleteScheduleEntry } from '@/composables/api/queries'
 
 export const useScheduleStore = defineStore('schedule', () => {
   const byTerm = ref<Record<string, Record<string, UICourse>>>({})
@@ -91,12 +91,6 @@ export const useScheduleStore = defineStore('schedule', () => {
     pairsByTerm.value = { ...pairsByTerm.value, [term ?? termId.value]: next }
   }
 
-  function pairsToSectionIds(pairs: SchedulePair[]): number[] {
-    return pairs
-      .map((p) => parseInt(p.sectionId, 10))
-      .filter((id) => Number.isFinite(id) && id > 0)
-  }
-
   function courseMapKey(code: string, title: string): string {
     return `${normalizeCourseCode(code)}::${title.trim().toUpperCase()}`
   }
@@ -133,41 +127,44 @@ export const useScheduleStore = defineStore('schedule', () => {
 
         if (loggedIn.value) {
           try {
-            const { sectionIds: serverSectionIds, courses: serverCourses } = await fetchScheduleData(term)
+            const { entries: serverEntries, courses: serverCourses } = await fetchScheduleData(term)
             // Bail out if term changed during fetch
             if (termId.value !== term) return
 
-            const localSectionIds = pairsToSectionIds(localPairs)
-            const mergedIds = [...new Set([...serverSectionIds, ...localSectionIds])]
-
             // Build pairs and course map from server-hydrated courses
-            const serverPairs: SchedulePair[] = []
+            const serverPairs: SchedulePair[] = serverEntries.map((e) => ({
+              code: normalizeCourseCode(e.courseId),
+              sectionId: normalizeSectionId(String(e.sectionId)),
+            })).filter((p) => p.code && p.sectionId)
+
             const courseMap: Record<string, UICourse> = {}
             for (const course of serverCourses) {
-              const code = normalizeCourseCode(course.code)
               const key = courseMapKey(course.code, course.title)
               courseMap[key] = course
-              for (const section of course.sections || []) {
-                serverPairs.push({ code, sectionId: section.sectionId })
-              }
             }
 
-            // Merge pairs: server pairs + local-only pairs
-            const serverIdSet = new Set(serverSectionIds)
+            // Merge pairs: server pairs + local-only pairs (by code+sectionId)
+            const serverPairSet = new Set(serverPairs.map((p) => `${p.code}:${p.sectionId}`))
             const mergedPairs: SchedulePair[] = [...serverPairs]
+            const localOnlyPairs: SchedulePair[] = []
             for (const p of localPairs) {
-              const id = parseInt(p.sectionId, 10)
-              if (!serverIdSet.has(id)) {
+              const key = `${normalizeCourseCode(p.code)}:${normalizeSectionId(p.sectionId)}`
+              if (!serverPairSet.has(key)) {
                 mergedPairs.push(p)
+                localOnlyPairs.push(p)
               }
             }
 
             setCurrentMap(courseMap, term)
             setCurrentPairs(mergedPairs, term)
 
-            // If local had extra IDs, push merged set and re-hydrate those
-            if (localSectionIds.length > 0 && mergedIds.length > serverSectionIds.length) {
-              await enqueue(() => putScheduleSectionIds(term, mergedIds))
+            // If local had extra pairs, push merged set and re-hydrate
+            if (localOnlyPairs.length > 0) {
+              const entriesToPut = mergedPairs.map((p) => ({
+                courseId: p.code,
+                sectionId: parseInt(p.sectionId, 10),
+              })).filter((e) => e.courseId && Number.isFinite(e.sectionId) && e.sectionId > 0)
+              await enqueue(() => putScheduleEntries(term, entriesToPut))
               if (termId.value !== term) return
               await hydrateForTerm(term)
             }
@@ -289,7 +286,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       if (Number.isFinite(numericId) && numericId > 0) {
         enqueue(async () => {
           try {
-            await postScheduleSectionId(termId.value, numericId)
+            await postScheduleEntry(termId.value, code, numericId)
           } catch (e) {
             console.error('Failed to add schedule section to server:', e)
             setCurrentPairs(prev)
@@ -351,7 +348,7 @@ export const useScheduleStore = defineStore('schedule', () => {
         if (Number.isFinite(numericId) && numericId > 0) {
           enqueue(async () => {
             try {
-              await deleteScheduleSectionId(termId.value, numericId)
+              await deleteScheduleEntry(termId.value, code, numericId)
             } catch (e) {
               console.error('Failed to remove schedule section from server:', e)
               setCurrentPairs(prev)
@@ -360,10 +357,13 @@ export const useScheduleStore = defineStore('schedule', () => {
           })
         }
       } else {
-        const remainingIds = pairsToSectionIds(next)
+        const remainingEntries = next.map((p) => ({
+          courseId: normalizeCourseCode(p.code),
+          sectionId: parseInt(normalizeSectionId(p.sectionId), 10),
+        })).filter((e) => e.courseId && Number.isFinite(e.sectionId) && e.sectionId > 0)
         enqueue(async () => {
           try {
-            await putScheduleSectionIds(termId.value, remainingIds)
+            await putScheduleEntries(termId.value, remainingEntries)
           } catch (e) {
             console.error('Failed to update schedule on server:', e)
             setCurrentPairs(prev)

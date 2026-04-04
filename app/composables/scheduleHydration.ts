@@ -18,10 +18,12 @@ export async function hydrateScheduledCourses(pairs: SchedulePair[], termId: str
   // Single batch API call
   const details = await getSectionDetailsBatch(termId, uniqueSectionIds)
 
-  // Build lookup by sectionId
-  const detailsBySectionId = new Map<string, CourseDetails>()
+  // Build lookup by code:sectionId compound key to handle crosslisted sections
+  const detailsByKey = new Map<string, CourseDetails>()
   for (const d of details) {
-    if (d.sectionId) detailsBySectionId.set(d.sectionId, d)
+    if (d.sectionId && d.code) {
+      detailsByKey.set(`${d.code}:${d.sectionId}`, d)
+    }
   }
 
   // Build course map from pairs
@@ -34,7 +36,7 @@ export async function hydrateScheduledCourses(pairs: SchedulePair[], termId: str
     if (seen.has(dedupeKey)) continue
     seen.add(dedupeKey)
 
-    const sectionDetails = detailsBySectionId.get(sid)
+    const sectionDetails = detailsByKey.get(`${code}:${sid}`)
     if (!sectionDetails) continue
 
     const title = (sectionDetails.title || '').toString().trim()

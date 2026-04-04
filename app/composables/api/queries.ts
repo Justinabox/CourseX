@@ -119,30 +119,29 @@ export async function deleteWatchlistKey(termId: string, key: string): Promise<s
   return res.keys
 }
 
-export async function fetchScheduleData(termId: string): Promise<{ sectionIds: number[]; courses: UICourse[] }> {
-  return await $fetch<{ sectionIds: number[]; courses: UICourse[] }>(`/api/user/schedule/${termId}`)
+type ScheduleEntryApi = { courseId: string; sectionId: number }
+
+export async function fetchScheduleData(termId: string): Promise<{ entries: ScheduleEntryApi[]; courses: UICourse[] }> {
+  return await $fetch<{ entries: ScheduleEntryApi[]; courses: UICourse[] }>(`/api/user/schedule/${termId}`)
 }
 
-export async function putScheduleSectionIds(termId: string, sectionIds: number[]): Promise<number[]> {
-  const res = await $fetch<{ sectionIds: number[] }>(`/api/user/schedule/${termId}`, {
+export async function putScheduleEntries(termId: string, entries: ScheduleEntryApi[]): Promise<void> {
+  await $fetch(`/api/user/schedule/${termId}`, {
     method: 'PUT',
-    body: { sectionIds },
+    body: { entries },
   })
-  return res.sectionIds
 }
 
-export async function postScheduleSectionId(termId: string, sectionId: number): Promise<number[]> {
-  const res = await $fetch<{ sectionIds: number[] }>(`/api/user/schedule/${termId}`, {
+export async function postScheduleEntry(termId: string, courseId: string, sectionId: number): Promise<void> {
+  await $fetch(`/api/user/schedule/${termId}`, {
     method: 'POST',
-    body: { sectionId },
+    body: { courseId, sectionId },
   })
-  return res.sectionIds
 }
 
-export async function deleteScheduleSectionId(termId: string, sectionId: number): Promise<number[]> {
-  const res = await $fetch<{ sectionIds: number[] }>(`/api/user/schedule/${termId}`, {
+export async function deleteScheduleEntry(termId: string, courseId: string, sectionId: number): Promise<void> {
+  await $fetch(`/api/user/schedule/${termId}`, {
     method: 'DELETE',
-    query: { sectionId },
+    query: { courseId, sectionId },
   })
-  return res.sectionIds
 }

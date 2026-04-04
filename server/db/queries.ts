@@ -605,52 +605,79 @@ export async function removeWatchlistKey(userId: number, termCode: string, key: 
 }
 
 // ─── Schedule CRUD ────────────────────────────────────────────────────────
+// schedule_pairs text[] stores "COURSE_ID:SECTION_ID" strings (e.g. "CS10:12345").
+// Legacy rows may still have section_ids integer[] — getSchedulePairs falls back to it.
 
-export async function getScheduleSectionIds(userId: number, termCode: string): Promise<number[]> {
+type ScheduleEntry = { courseId: string; sectionId: number }
+
+function encodePair(courseId: string, sectionId: number): string {
+  return `${courseId}:${sectionId}`
+}
+
+function decodePair(pair: string): ScheduleEntry | null {
+  const idx = pair.lastIndexOf(':')
+  if (idx <= 0) return null
+  const courseId = pair.slice(0, idx)
+  const sectionId = parseInt(pair.slice(idx + 1), 10)
+  if (!courseId || !Number.isFinite(sectionId) || sectionId <= 0) return null
+  return { courseId, sectionId }
+}
+
+export async function getSchedulePairs(userId: number, termCode: string): Promise<ScheduleEntry[]> {
   const sql = useSql()
   const rows = await sql`
-    SELECT section_ids FROM user_schedule
+    SELECT schedule_pairs FROM user_schedule
     WHERE user_id = ${userId} AND term_code = ${termCode}
   `
-  return rows.length > 0 ? (rows[0].section_ids || []) : []
+  if (rows.length === 0) return []
+  const pairs: string[] = rows[0].schedule_pairs || []
+  return pairs.map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function replaceSchedule(userId: number, termCode: string, sectionIds: number[]): Promise<number[]> {
+export async function replaceSchedulePairs(userId: number, termCode: string, entries: ScheduleEntry[]): Promise<ScheduleEntry[]> {
   const sql = useSql()
+  const encoded = entries.map((e) => encodePair(e.courseId, e.sectionId))
   const rows = await sql`
-    INSERT INTO user_schedule (user_id, term_code, section_ids, updated_at)
-    VALUES (${userId}, ${termCode}, ${sectionIds}, now())
+    INSERT INTO user_schedule (user_id, term_code, schedule_pairs, section_ids, updated_at)
+    VALUES (${userId}, ${termCode}, ${encoded}, '{}', now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
-      section_ids = EXCLUDED.section_ids,
+      schedule_pairs = EXCLUDED.schedule_pairs,
+      section_ids = '{}',
       updated_at = now()
-    RETURNING section_ids
+    RETURNING schedule_pairs
   `
-  return rows[0].section_ids || []
+  return (rows[0].schedule_pairs || []).map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function addScheduleSectionId(userId: number, termCode: string, sectionId: number): Promise<number[]> {
+export async function addSchedulePair(userId: number, termCode: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
   const sql = useSql()
+  const pair = encodePair(courseId, sectionId)
   const rows = await sql`
-    INSERT INTO user_schedule (user_id, term_code, section_ids, updated_at)
-    VALUES (${userId}, ${termCode}, ARRAY[${sectionId}]::integer[], now())
+    INSERT INTO user_schedule (user_id, term_code, schedule_pairs, section_ids, updated_at)
+    VALUES (${userId}, ${termCode}, ARRAY[${pair}]::text[], '{}', now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
-      section_ids = array_append(array_remove(user_schedule.section_ids, ${sectionId}), ${sectionId}),
+      schedule_pairs = array_append(array_remove(user_schedule.schedule_pairs, ${pair}), ${pair}),
+      section_ids = '{}',
       updated_at = now()
-    RETURNING section_ids
+    RETURNING schedule_pairs
   `
-  return rows[0].section_ids || []
+  return (rows[0].schedule_pairs || []).map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function removeScheduleSectionId(userId: number, termCode: string, sectionId: number): Promise<number[]> {
+export async function removeSchedulePair(userId: number, termCode: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
   const sql = useSql()
+  const pair = encodePair(courseId, sectionId)
   const rows = await sql`
     UPDATE user_schedule SET
-      section_ids = array_remove(section_ids, ${sectionId}),
+      schedule_pairs = array_remove(schedule_pairs, ${pair}),
+      section_ids = '{}',
       updated_at = now()
     WHERE user_id = ${userId} AND term_code = ${termCode}
-    RETURNING section_ids
+    RETURNING schedule_pairs
   `
-  return rows.length > 0 ? (rows[0].section_ids || []) : []
+  return rows.length > 0
+    ? (rows[0].schedule_pairs || []).map(decodePair).filter((p): p is ScheduleEntry => p !== null)
+    : []
 }
 
 // ─── Pipeline Metadata ──────────────────────────────────────────────────────
