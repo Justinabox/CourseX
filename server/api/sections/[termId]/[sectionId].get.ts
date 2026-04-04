@@ -1,4 +1,4 @@
-import { querySectionDetail } from '~~/server/db/queries'
+import { querySectionDetail, queryOtherSemesterSyllabus } from '~~/server/db/queries'
 import { validateTermCode } from '~~/server/utils/termValidator'
 
 export default defineEventHandler(async (event) => {
@@ -8,5 +8,15 @@ export default defineEventHandler(async (event) => {
 
   const detail = await querySectionDetail(termId, sectionId)
   if (!detail) throw createError({ statusCode: 404, statusMessage: 'Section not found' })
-  return detail
+
+  let previousSyllabus: { termCode: number; filename: string } | null = null
+  if (!detail.syllabus) {
+    previousSyllabus = await queryOtherSemesterSyllabus(
+      detail.code,
+      detail.title,
+      parseInt(termId, 10)
+    )
+  }
+
+  return { ...detail, previousSyllabus }
 })

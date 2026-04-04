@@ -1,5 +1,23 @@
 import { pgTable, varchar, text, boolean, smallint, integer, real, timestamp, primaryKey, index } from 'drizzle-orm/pg-core'
 
+// ─── Cross-Term Tables ──────────────────────────────────────────────────────
+
+/**
+ * Cross-term syllabus lookup. One row per (course_id, section_title) —
+ * stores only the most recent term's syllabus for that combination.
+ * Scrapper upserts only advance the record (newer term_code wins).
+ */
+export const syllabusMap = pgTable('syllabus_map', {
+  courseId: varchar('course_id', { length: 16 }).notNull(),
+  sectionTitle: text('section_title').notNull(),
+  termCode: integer('term_code').notNull(),
+  filename: text('filename').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.courseId, t.sectionTitle] }),
+  index('syllabus_map_course_id_idx').on(t.courseId),
+])
+
 // ─── Static Tables ───────────────────────────────────────────────────────────
 
 export const schools = pgTable('schools', {
