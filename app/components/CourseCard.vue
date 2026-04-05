@@ -83,6 +83,7 @@
                     <a
                       :class="{ 'text-cx-status-danger-icon': item.isLow, 'text-cx-text-secondary': !item.isLow }"
                     >
+                      <span v-if="!Number.isNaN(item.rating)">{{ item.rating.toFixed(1) }}</span>
                       {{ item.name }}
                     </a>
                     <span class="text-cx-text-muted" v-if="idx < instructorViewsFor(section.sectionId).length - 1">,&nbsp;</span>

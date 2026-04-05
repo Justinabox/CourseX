@@ -50,8 +50,8 @@ function toProfessor(name: string, raw: RawProfessor): Professor {
   return {
     link,
     duplicated: isDuplicated,
-    difficulty: typeof raw.difficulty === 'number' ? raw.difficulty : NaN,
-    rating: typeof raw.rating === 'number' ? raw.rating : NaN,
+    difficulty: typeof raw.difficulty === 'number' && raw.difficulty > 0 ? raw.difficulty : NaN,
+    rating: typeof raw.rating === 'number' && raw.rating > 0 ? raw.rating : NaN,
     rating_count: typeof raw.rating_count === 'number' ? Math.trunc(raw.rating_count) : 0,
     take_again: typeof raw.take_again === 'number' ? Math.round(raw.take_again) : 0
   }
