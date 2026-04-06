@@ -23,6 +23,8 @@ export type UICourse = {
   description: string
   sections: UICourseSection[]
   ges: GECode[]
+  displayCode?: string | null
+  isCrosslisted?: boolean
 }
 
 export type CourseDetails = {
@@ -45,6 +47,8 @@ export type CourseDetails = {
   dClearance: boolean
   type: SectionMode | null
   ges: GECode[]
+  displayCode?: string | null
+  isCrosslisted?: boolean
   isCancelled: boolean
   syllabus: string | null
   previousSyllabus: { termCode: number; filename: string } | null

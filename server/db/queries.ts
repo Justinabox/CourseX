@@ -43,6 +43,8 @@ export async function queryCoursesByTerm(termId: string) {
       c.title,
       c.description,
       c.dupe_credit_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
       c.ges::text[] as ges,
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,
@@ -87,6 +89,8 @@ export async function queryCoursesByProgram(termId: string, programPrefix: strin
       c.title,
       c.description,
       c.dupe_credit_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
       c.ges::text[] as ges,
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,
@@ -187,7 +191,7 @@ export async function queryCourseDetail(termId: string, courseId: string, title?
 
 // ─── Single section detail ─────────────────────────────────────────────────
 
-export async function querySectionDetail(termId: string, sectionId: string) {
+export async function querySectionDetail(termId: string, sectionId: string, courseId?: string) {
   validateTermCode(termId)
   const sql = useSql()
   const numericId = parseInt(sectionId, 10)
@@ -195,12 +199,46 @@ export async function querySectionDetail(termId: string, sectionId: string) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid section ID' })
   }
 
-  const rows = await sql`
+  const rows = courseId
+    ? await sql`
     SELECT
       c.id as course_id,
       c.title,
       c.description as course_description,
       c.dupe_credit_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
+      c.ges::text[] as ges,
+      to_jsonb(c.prerequisites) as prerequisites,
+      to_jsonb(c.corequisites) as corequisites,
+      s.id as section_id,
+      s.title as section_title,
+      s.type::text as section_type,
+      s.registered_seat as enrolled,
+      s.total_seat as capacity,
+      s.waitlisted_seat as waitlisted,
+      s.units,
+      to_jsonb(s.schedules) as schedules,
+      s.d_clearance,
+      s.is_cancelled,
+      s.syllabus,
+      array_agg(si.instructor_name) FILTER (WHERE si.instructor_name IS NOT NULL) as instructors
+    FROM ${sql.unsafe(`sections_${termId}`)} s
+    JOIN ${sql.unsafe(`course_sections_${termId}`)} cs ON cs.section_id = s.id
+    JOIN ${sql.unsafe(`courses_${termId}`)} c ON c.id = cs.course_id
+    LEFT JOIN ${sql.unsafe(`section_instructors_${termId}`)} si ON si.section_id = s.id
+    WHERE s.id = ${numericId}
+      AND c.id = ${courseId}
+    GROUP BY c.id, s.id
+  `
+    : await sql`
+    SELECT
+      c.id as course_id,
+      c.title,
+      c.description as course_description,
+      c.dupe_credit_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
       c.ges::text[] as ges,
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,
@@ -242,6 +280,8 @@ export async function querySectionsBatch(termId: string, sectionIds: number[]) {
       c.dupe_credit_comment,
       c.note,
       c.recom_prep_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
       c.ges::text[] as ges,
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,
@@ -323,6 +363,8 @@ function splitCourseRowByTitle(row: any): any[] {
     code: row.id,
     description: row.description || '',
     ges: row.ges || [],
+    displayCode: row.display_code || null,
+    isCrosslisted: row.is_cross_listed ?? false,
     sections: group.sections.map((s: any) => ({
       sectionId: String(s.sectionId),
       instructors: s.instructors,
@@ -351,6 +393,8 @@ function mapCourseRow(row: any) {
     code: row.id,
     description: row.description || '',
     ges: row.ges || [],
+    displayCode: row.display_code || null,
+    isCrosslisted: row.is_cross_listed ?? false,
     sections: sections.map((s: any) => ({
       sectionId: String(s.sectionId),
       instructors: s.instructors,
@@ -400,6 +444,8 @@ function mapCourseDetailRow(row: any, titleOverride?: string) {
     dClearance: sections.some((s: any) => s.hasDClearance),
     type: sections[0]?.type || null,
     ges: row.ges || [],
+    displayCode: row.display_code || null,
+    isCrosslisted: row.is_cross_listed ?? false,
     isCancelled: sections.every((s: any) => s.isCancelled),
     syllabus: sections.find((s: any) => s.syllabus)?.syllabus || null,
   }
@@ -426,6 +472,8 @@ function mapSectionDetailRow(row: any) {
     dClearance: row.d_clearance ?? false,
     type: row.section_type || null,
     ges: row.ges || [],
+    displayCode: row.display_code || null,
+    isCrosslisted: row.is_cross_listed ?? false,
     isCancelled: row.is_cancelled ?? false,
     syllabus: row.syllabus || null,
   }
@@ -464,6 +512,8 @@ export async function queryWatchlistCourses(termCode: string, courseKeys: string
       c.title,
       c.description,
       c.dupe_credit_comment,
+      to_jsonb(c.display_code) as display_code,
+      c.is_cross_listed,
       c.ges::text[] as ges,
       to_jsonb(c.prerequisites) as prerequisites,
       to_jsonb(c.corequisites) as corequisites,

@@ -35,7 +35,13 @@
           class="h-4 w-4 transition-colors shrink-0 hover:scale-110 transition-transform cursor-pointer"
           :class="starIconClass"
         />
-        <span class="text-xs text-cx-text-secondary font-semibold shrink-0 ml-auto">{{ code }}</span>
+        <span class="text-xs text-cx-text-secondary font-semibold shrink-0 ml-auto flex items-center gap-0.5">
+        <Icon
+          v-if="isCrosslisted && code !== displayCode"
+          title="Crosslisted"
+          name="lucide:shuffle"
+          class=""
+        />{{ renderedCode }}</span>
       </div>
       <span class="text-xs text-cx-text-secondary line-clamp-2">{{ description }}</span>
     </div>
@@ -146,6 +152,8 @@ const props = defineProps<{
   description: string
   sections: UICourseSection[]
   ges: GECode[]
+  displayCode?: string | null
+  isCrosslisted?: boolean
 }>()
 
 const { checkScheduleCollision } = useScheduleStore()
@@ -162,6 +170,8 @@ function onWatchlistToggle() {
       description: props.description,
       sections: props.sections,
       ges: props.ges,
+      displayCode: props.displayCode || null,
+      isCrosslisted: props.isCrosslisted ?? false,
     })
   }
 }
@@ -174,6 +184,10 @@ const starIconClass = computed(() =>
 
 const isGESM = computed(() => (props.code || '').toUpperCase().startsWith('GESM'))
 const geLetters = computed(() => Array.from(new Set(props.ges || [])).filter(g => g && g !== 'GESM'))
+const renderedCode = computed(() => {
+  if (props.isCrosslisted && props.code !== props.displayCode) return `(${props.displayCode})`
+  return props.code
+})
 
 function renderSchedule(section: UICourseSection) {
   return formatCardSchedule(section.schedules) || 'TBA'

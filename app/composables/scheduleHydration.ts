@@ -49,6 +49,8 @@ export async function hydrateScheduledCourses(pairs: SchedulePair[], termId: str
       description: sectionDetails.description,
       sections: [],
       ges: sectionDetails.ges || [],
+      displayCode: sectionDetails.displayCode || null,
+      isCrosslisted: sectionDetails.isCrosslisted ?? false,
     } as UICourse
 
     const section: UICourseSection = {

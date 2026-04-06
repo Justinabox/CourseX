@@ -44,6 +44,8 @@
             :description="filteredCourses[virtualRow.index]!.description"
             :sections="filteredCourses[virtualRow.index]!.sections"
             :ges="filteredCourses[virtualRow.index]!.ges"
+            :display-code="filteredCourses[virtualRow.index]!.displayCode"
+            :is-crosslisted="filteredCourses[virtualRow.index]!.isCrosslisted"
             @section-click="(sid) => onSectionClick(filteredCourses[virtualRow.index]!.code, sid)"
           />
         </div>

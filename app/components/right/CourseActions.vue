@@ -77,12 +77,12 @@ function onHoverPreviewEnter() {
 function onHoverPreviewLeave() { clearHoverPreview() }
 
 function onAddOrRemoveWatchlist() {
-  const { code, title, description, ges } = props.details
+  const { code, title, description, ges, displayCode } = props.details
   if (isInWatchlist.value) {
     watchlistStore.removeFromWatchlist(code, title)
   } else {
     watchlistStore.upsertWatchlistItem(code, title, {
-      title, code, description, sections: [], ges,
+      title, code, description, sections: [], ges, displayCode: displayCode || null, isCrosslisted: props.details.isCrosslisted ?? false,
     })
   }
 }

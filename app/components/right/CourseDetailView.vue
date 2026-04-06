@@ -3,9 +3,27 @@
     <div v-if="details">
       <div class="flex items-center gap-2">
         <span class="text-sm text-cx-text-subtle">Course Details</span>
-        <span class="text-sm text-cx-text-subtle">{{ details.code }}</span>
+        <span class="text-sm text-cx-text-subtle">{{ details.code }} {{ details.isCrosslisted && details.code !== details.displayCode ? `(${details.displayCode})` : '' }}</span>
       </div>
-      <h1 class="text-2xl font-semibold">{{ details.title }}</h1>
+      <div class="flex items-center gap-2 items-center">
+        <div class="flex items-center" v-if="isGESM || geLetters.length > 0">
+          <span
+            class="w-fit text-xl font-semibold line-clamp-1 leading-none grid place-items-center text-cx-text-weak-muted"
+          >
+            {{ isGESM ? 'GESM-' : 'GE-' }}
+          </span>
+          <div class="flex items-center" v-if="geLetters.length > 0">
+            <span
+              v-for="g in geLetters"
+              :key="g"
+              class="w-fit text-xl font-semibold line-clamp-1 leading-none grid place-items-center text-cx-text-weak-muted"
+            >
+              {{ g }}
+            </span>
+          </div>
+        </div>
+        <h1 class="text-2xl font-semibold">{{ details.title }}</h1>
+      </div>
     </div>
 
     <div class="flex flex-col gap-2 overflow-y-scroll h-full">
@@ -77,7 +95,7 @@ async function loadDetails() {
   const code = selectedCourseCode.value
   const section = selectedSectionId.value
   const tid = termId.value
-  if (!code) {
+  if (!code || !tid) {
     details.value = null
     return
   }
@@ -122,4 +140,6 @@ const detailScheduleLines = computed(() => formatDetailScheduleLines(details.val
 const hasMultipleSchedules = computed(() => (details.value?.schedules || []).length > 1)
 const detailLocation = computed(() => formatCardLocation(details.value?.schedules || []))
 const showDetailLocation = computed(() => !hasMultipleSchedules.value && !!detailLocation.value)
+const isGESM = computed(() => (details.value?.code || '').toUpperCase().startsWith('GESM'))
+const geLetters = computed(() => Array.from(new Set(details.value?.ges || [])).filter(g => g && g !== 'GESM'))
 </script>

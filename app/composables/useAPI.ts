@@ -1,4 +1,4 @@
-export type { UICourse, UICourseSection, CourseDetails, Schedule, GECode, CourseGroup, SectionMode, Restriction } from './api/types'
+export type { UICourse, UICourseSection, CourseDetails, Schedule, GECode, CourseGroup, CourseCode, SectionMode, Restriction } from './api/types'
 export {
   listSchoolAndPrograms,
   listAllCourses,

@@ -1,10 +1,39 @@
-import type { CourseDetails, UICourse } from '../api/types'
+import type { CourseDetails, UICourse, CourseCode } from '../api/types'
 import { normalizeCourseCode } from '@/utils/normalize'
+import { formatCourseCode } from './transforms'
 
 // Module-level caches
 let programsCache: Record<string, any> | null = null
 const coursesByTermCache = new Map<string, { data: UICourse[]; ts: number }>()
 const COURSES_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+type ApiUICourse = Omit<UICourse, 'displayCode'> & {
+  displayCode?: CourseCode | string | null
+}
+
+type ApiCourseDetails = Omit<CourseDetails, 'displayCode'> & {
+  displayCode?: CourseCode | string | null
+}
+
+function normalizeDisplayCode(displayCode?: CourseCode | string | null): string | null {
+  if (!displayCode) return null
+  if (typeof displayCode === 'string') return displayCode
+  return formatCourseCode(displayCode)
+}
+
+function mapUICourse(course: ApiUICourse): UICourse {
+  return {
+    ...course,
+    displayCode: normalizeDisplayCode(course.displayCode),
+  }
+}
+
+function mapCourseDetails(details: ApiCourseDetails): CourseDetails {
+  return {
+    ...details,
+    displayCode: normalizeDisplayCode(details.displayCode),
+  }
+}
 
 export async function listSchoolAndPrograms() {
   if (programsCache) return programsCache
@@ -22,7 +51,7 @@ export async function listAllCourses(termId: string): Promise<UICourse[]> {
   const cached = coursesByTermCache.get(termId)
   if (cached && Date.now() - cached.ts < COURSES_CACHE_TTL) return cached.data
   try {
-    const data = await $fetch<UICourse[]>(`/api/courses/${termId}`)
+    const data = (await $fetch<ApiUICourse[]>(`/api/courses/${termId}`)).map(mapUICourse)
     coursesByTermCache.set(termId, { data, ts: Date.now() })
     return data
   } catch (e: any) {
@@ -34,7 +63,7 @@ export async function listAllCourses(termId: string): Promise<UICourse[]> {
 export async function getSchoolCourses(termId: string, schoolPrefix: string, programPrefix: string): Promise<UICourse[]> {
   if (!schoolPrefix || !programPrefix) return []
   try {
-    return await $fetch<UICourse[]>(`/api/courses/${termId}/by-program/${encodeURIComponent(programPrefix)}`)
+    return (await $fetch<ApiUICourse[]>(`/api/courses/${termId}/by-program/${encodeURIComponent(programPrefix)}`)).map(mapUICourse)
   } catch (e: any) {
     if (e?.statusCode === 401) return []
     throw e
@@ -44,9 +73,10 @@ export async function getSchoolCourses(termId: string, schoolPrefix: string, pro
 export async function getCourseDetails(termId: string, courseCode: string, title?: string): Promise<CourseDetails | null> {
   if (!courseCode) return null
   try {
-    return await $fetch<CourseDetails>(`/api/courses/${termId}/${encodeURIComponent(courseCode)}`, {
+    const data = await $fetch<ApiCourseDetails>(`/api/courses/${termId}/${encodeURIComponent(courseCode)}`, {
       query: title ? { title } : undefined,
     })
+    return mapCourseDetails(data)
   } catch {
     return null
   }
@@ -55,7 +85,10 @@ export async function getCourseDetails(termId: string, courseCode: string, title
 export async function getSectionDetails(termId: string, courseCode: string, sectionId: string): Promise<CourseDetails | null> {
   if (!courseCode || !sectionId) return null
   try {
-    return await $fetch<CourseDetails>(`/api/sections/${termId}/${encodeURIComponent(sectionId)}`)
+    const data = await $fetch<ApiCourseDetails>(`/api/sections/${termId}/${encodeURIComponent(sectionId)}`, {
+      query: { courseId: courseCode },
+    })
+    return mapCourseDetails(data)
   } catch {
     return null
   }
@@ -64,10 +97,10 @@ export async function getSectionDetails(termId: string, courseCode: string, sect
 export async function getSectionDetailsBatch(termId: string, sectionIds: string[]): Promise<CourseDetails[]> {
   if (!sectionIds || sectionIds.length === 0) return []
   try {
-    return await $fetch<CourseDetails[]>(`/api/sections/${termId}/batch`, {
+    return (await $fetch<ApiCourseDetails[]>(`/api/sections/${termId}/batch`, {
       method: 'POST',
       body: { sectionIds },
-    })
+    })).map(mapCourseDetails)
   } catch (e: any) {
     if (e?.statusCode === 401) return []
     throw e
@@ -92,7 +125,8 @@ export function parseWatchlistKey(key: string): { code: string; title: string } 
 // ─── Server-synced watchlist/schedule ─────────────────────────────────────
 
 export async function fetchWatchlistData(termId: string): Promise<{ keys: string[]; courses: UICourse[] }> {
-  return await $fetch<{ keys: string[]; courses: UICourse[] }>(`/api/user/watchlist/${termId}`)
+  const data = await $fetch<{ keys: string[]; courses: ApiUICourse[] }>(`/api/user/watchlist/${termId}`)
+  return { ...data, courses: data.courses.map(mapUICourse) }
 }
 
 export async function putWatchlistKeys(termId: string, keys: string[]): Promise<string[]> {
@@ -122,7 +156,8 @@ export async function deleteWatchlistKey(termId: string, key: string): Promise<s
 type ScheduleEntryApi = { courseId: string; sectionId: number }
 
 export async function fetchScheduleData(termId: string): Promise<{ entries: ScheduleEntryApi[]; courses: UICourse[] }> {
-  return await $fetch<{ entries: ScheduleEntryApi[]; courses: UICourse[] }>(`/api/user/schedule/${termId}`)
+  const data = await $fetch<{ entries: ScheduleEntryApi[]; courses: ApiUICourse[] }>(`/api/user/schedule/${termId}`)
+  return { ...data, courses: data.courses.map(mapUICourse) }
 }
 
 export async function putScheduleEntries(termId: string, entries: ScheduleEntryApi[]): Promise<void> {
