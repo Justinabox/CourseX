@@ -5,7 +5,7 @@
         <span class="text-sm text-cx-text-subtle">Course Details</span>
         <span class="text-sm text-cx-text-subtle">{{ details.code }} {{ details.isCrosslisted && details.code !== details.displayCode ? `(${details.displayCode})` : '' }}</span>
       </div>
-      <div class="flex items-center gap-2 items-center">
+      <div class="flex gap-2 items-baseline">
         <div class="flex items-center" v-if="isGESM || geLetters.length > 0">
           <span
             class="w-fit text-xl font-semibold line-clamp-1 leading-none grid place-items-center text-cx-text-weak-muted"
