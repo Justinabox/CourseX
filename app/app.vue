@@ -3,7 +3,7 @@
     <div class="bg-cx-background rounded-lg border border-cx-border w-full h-full max-w-[1376px] mx-auto text-left">
       <NuxtPage />
     </div>
-    <span class="text-xs text-cx-text-subtle">Data is ~4 hours behind WebReg | Last updated: {{ dataTimestamp }}</span>
+    <span class="text-xs text-cx-text-subtle">Data is ~1 hour behind WebReg | Last updated: {{ dataTimestamp }}</span>
   </div>
 </template>
 
