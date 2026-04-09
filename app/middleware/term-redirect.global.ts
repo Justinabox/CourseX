@@ -6,7 +6,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const parts = path.split('/')
   const maybeTerm = parts[2] || ''
-  if (/^\d{5}$/.test(maybeTerm)) return
+  if (/^\d{5}$/.test(maybeTerm)) {
+    const slug = parts.slice(3).join('/')
+    if (!slug) return navigateTo(`/course/${maybeTerm}/all`, { redirectCode: 302 })
+    return
+  }
 
   const { data: terms } = await useAsyncData('terms', () => $fetch<Term[]>('/api/terms'), {
     default: () => [] as Term[],

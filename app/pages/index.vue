@@ -3,11 +3,13 @@
 </template>
 
 <script setup lang="ts">
-if (process.server) {
-  await navigateTo('/course/all')
+const { activeTermCode } = useTerms()
+
+const termCode = activeTermCode.value
+if (termCode) {
+  await navigateTo(`/course/${termCode}/all`, { redirectCode: 302 })
 } else {
-  const router = useRouter()
-  router.replace('/course/all')
+  await navigateTo('/course/all', { redirectCode: 302 })
 }
 </script>
 

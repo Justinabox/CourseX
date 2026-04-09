@@ -1,6 +1,6 @@
 import { ref, onBeforeUnmount } from 'vue'
 import type { Ref } from 'vue'
-import type { ScheduleBlock } from '@/composables/scheduleUtils'
+import type { ScheduleBlock } from '@/utils/scheduleUtils'
 import { START_MINUTES, END_MINUTES, SLOT_MINUTES } from '@/composables/useSchedule'
 
 export function useCalendarDrag(opts: {

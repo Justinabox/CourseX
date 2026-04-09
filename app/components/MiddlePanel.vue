@@ -104,7 +104,7 @@ const { makeSelectionPath } = useRouteMode()
 
 const onSectionClick = (courseCode: string, sectionId: string) => {
   const parsed = mode.value
-  router.push(makeSelectionPath(parsed, courseCode, sectionId || 'section'))
+  router.push(makeSelectionPath(parsed, courseCode, sectionId || null))
 }
 </script>
 

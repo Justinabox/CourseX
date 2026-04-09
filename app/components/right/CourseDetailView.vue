@@ -102,7 +102,7 @@ async function loadDetails() {
   isLoading.value = true
   loadError.value = null
   try {
-    if (section) {
+    if (section && section !== 'section') {
       const bySection = await getSectionDetails(tid, code, section)
       if (bySection) {
         details.value = bySection

@@ -13,11 +13,3 @@ export function useTermId() {
   })
   return { termId }
 }
-
-export function useTermNavigation() {
-  const { termId } = useTermId()
-  const toCoursePath = (...segments: string[]) => `/course/${termId.value}/${segments.join('/')}`
-  return { termId, toCoursePath }
-}
-
-

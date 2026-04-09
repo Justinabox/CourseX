@@ -35,16 +35,17 @@ export function useRouteMode() {
 
   function makeSelectionPath(target: RouteMode, code: string, sectionId: string | null): string {
     const t = term.value || resolvedTermId.value
+    const sectionSuffix = sectionId ? `/${encodeURIComponent(sectionId)}` : ''
     if (target.mode === 'all' || target.mode === 'unknown') {
-      return `/course/${t}/all/${encodeURIComponent(code)}/${encodeURIComponent(sectionId || 'section')}`
+      return `/course/${t}/all/${encodeURIComponent(code)}${sectionSuffix}`
     }
     if (target.mode === 'scheduled') {
-      return `/course/${t}/scheduled/${encodeURIComponent(code)}/${encodeURIComponent(sectionId || 'section')}`
+      return `/course/${t}/scheduled/${encodeURIComponent(code)}${sectionSuffix}`
     }
     if (target.mode === 'watchlist') {
-      return `/course/${t}/watchlist/${encodeURIComponent(code)}/${encodeURIComponent(sectionId || 'section')}`
+      return `/course/${t}/watchlist/${encodeURIComponent(code)}${sectionSuffix}`
     }
-    return `/course/${t}/${encodeURIComponent(target.school)}/${encodeURIComponent(target.program)}/${encodeURIComponent(code)}/${encodeURIComponent(sectionId || 'section')}`
+    return `/course/${t}/${encodeURIComponent(target.school)}/${encodeURIComponent(target.program)}/${encodeURIComponent(code)}${sectionSuffix}`
   }
 
   const scopeKey = computed<string>(() => {

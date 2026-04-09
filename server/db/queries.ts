@@ -494,9 +494,9 @@ function deduplicateSchedules(schedules: any[]): any[] {
 
 // ─── Hydrated user data queries ───────────────────────────────────────────
 
-export async function queryWatchlistCourses(termCode: string, courseKeys: string[]) {
+export async function queryWatchlistCourses(termId: string, courseKeys: string[]) {
   if (courseKeys.length === 0) return []
-  validateTermCode(termCode)
+  validateTermCode(termId)
   const sql = useSql()
 
   // Extract course codes from keys (format: "CODE::TITLE")
@@ -534,10 +534,10 @@ export async function queryWatchlistCourses(termCode: string, courseKeys: string
         'sectionId', si.section_id::text,
         'name',      si.instructor_name
       )) FILTER (WHERE si.instructor_name IS NOT NULL) as section_instructors
-    FROM ${sql.unsafe(`courses_${termCode}`)} c
-    JOIN ${sql.unsafe(`course_sections_${termCode}`)} cs ON cs.course_id = c.id
-    JOIN ${sql.unsafe(`sections_${termCode}`)} s ON s.id = cs.section_id
-    LEFT JOIN ${sql.unsafe(`section_instructors_${termCode}`)} si ON si.section_id = s.id
+    FROM ${sql.unsafe(`courses_${termId}`)} c
+    JOIN ${sql.unsafe(`course_sections_${termId}`)} cs ON cs.course_id = c.id
+    JOIN ${sql.unsafe(`sections_${termId}`)} s ON s.id = cs.section_id
+    LEFT JOIN ${sql.unsafe(`section_instructors_${termId}`)} si ON si.section_id = s.id
     WHERE s.is_cancelled = false
       AND c.id = ANY(${courseCodes})
     GROUP BY c.id
@@ -607,20 +607,20 @@ export async function getUserIdByGoogleId(googleId: string): Promise<number | nu
 
 // ─── Watchlist CRUD ───────────────────────────────────────────────────────
 
-export async function getWatchlistKeys(userId: number, termCode: string): Promise<string[]> {
+export async function getWatchlistKeys(userId: number, termId: string): Promise<string[]> {
   const sql = useSql()
   const rows = await sql`
     SELECT course_keys FROM user_watchlist
-    WHERE user_id = ${userId} AND term_code = ${termCode}
+    WHERE user_id = ${userId} AND term_code = ${termId}
   `
   return rows.length > 0 ? (rows[0].course_keys || []) : []
 }
 
-export async function replaceWatchlist(userId: number, termCode: string, keys: string[]): Promise<string[]> {
+export async function replaceWatchlist(userId: number, termId: string, keys: string[]): Promise<string[]> {
   const sql = useSql()
   const rows = await sql`
     INSERT INTO user_watchlist (user_id, term_code, course_keys, updated_at)
-    VALUES (${userId}, ${termCode}, ${keys}, now())
+    VALUES (${userId}, ${termId}, ${keys}, now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
       course_keys = EXCLUDED.course_keys,
       updated_at = now()
@@ -629,11 +629,11 @@ export async function replaceWatchlist(userId: number, termCode: string, keys: s
   return rows[0].course_keys || []
 }
 
-export async function addWatchlistKey(userId: number, termCode: string, key: string): Promise<string[]> {
+export async function addWatchlistKey(userId: number, termId: string, key: string): Promise<string[]> {
   const sql = useSql()
   const rows = await sql`
     INSERT INTO user_watchlist (user_id, term_code, course_keys, updated_at)
-    VALUES (${userId}, ${termCode}, ARRAY[${key}]::text[], now())
+    VALUES (${userId}, ${termId}, ARRAY[${key}]::text[], now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
       course_keys = array_append(array_remove(user_watchlist.course_keys, ${key}), ${key}),
       updated_at = now()
@@ -642,13 +642,13 @@ export async function addWatchlistKey(userId: number, termCode: string, key: str
   return rows[0].course_keys || []
 }
 
-export async function removeWatchlistKey(userId: number, termCode: string, key: string): Promise<string[]> {
+export async function removeWatchlistKey(userId: number, termId: string, key: string): Promise<string[]> {
   const sql = useSql()
   const rows = await sql`
     UPDATE user_watchlist SET
       course_keys = array_remove(course_keys, ${key}),
       updated_at = now()
-    WHERE user_id = ${userId} AND term_code = ${termCode}
+    WHERE user_id = ${userId} AND term_code = ${termId}
     RETURNING course_keys
   `
   return rows.length > 0 ? (rows[0].course_keys || []) : []
@@ -673,23 +673,23 @@ function decodePair(pair: string): ScheduleEntry | null {
   return { courseId, sectionId }
 }
 
-export async function getSchedulePairs(userId: number, termCode: string): Promise<ScheduleEntry[]> {
+export async function getSchedulePairs(userId: number, termId: string): Promise<ScheduleEntry[]> {
   const sql = useSql()
   const rows = await sql`
     SELECT schedule_pairs FROM user_schedule
-    WHERE user_id = ${userId} AND term_code = ${termCode}
+    WHERE user_id = ${userId} AND term_code = ${termId}
   `
   if (rows.length === 0) return []
   const pairs: string[] = rows[0].schedule_pairs || []
   return pairs.map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function replaceSchedulePairs(userId: number, termCode: string, entries: ScheduleEntry[]): Promise<ScheduleEntry[]> {
+export async function replaceSchedulePairs(userId: number, termId: string, entries: ScheduleEntry[]): Promise<ScheduleEntry[]> {
   const sql = useSql()
   const encoded = entries.map((e) => encodePair(e.courseId, e.sectionId))
   const rows = await sql`
     INSERT INTO user_schedule (user_id, term_code, schedule_pairs, section_ids, updated_at)
-    VALUES (${userId}, ${termCode}, ${encoded}, '{}', now())
+    VALUES (${userId}, ${termId}, ${encoded}, '{}', now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
       schedule_pairs = EXCLUDED.schedule_pairs,
       section_ids = '{}',
@@ -699,12 +699,12 @@ export async function replaceSchedulePairs(userId: number, termCode: string, ent
   return (rows[0].schedule_pairs || []).map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function addSchedulePair(userId: number, termCode: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
+export async function addSchedulePair(userId: number, termId: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
   const sql = useSql()
   const pair = encodePair(courseId, sectionId)
   const rows = await sql`
     INSERT INTO user_schedule (user_id, term_code, schedule_pairs, section_ids, updated_at)
-    VALUES (${userId}, ${termCode}, ARRAY[${pair}]::text[], '{}', now())
+    VALUES (${userId}, ${termId}, ARRAY[${pair}]::text[], '{}', now())
     ON CONFLICT (user_id, term_code) DO UPDATE SET
       schedule_pairs = array_append(array_remove(user_schedule.schedule_pairs, ${pair}), ${pair}),
       section_ids = '{}',
@@ -714,7 +714,7 @@ export async function addSchedulePair(userId: number, termCode: string, courseId
   return (rows[0].schedule_pairs || []).map(decodePair).filter((p): p is ScheduleEntry => p !== null)
 }
 
-export async function removeSchedulePair(userId: number, termCode: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
+export async function removeSchedulePair(userId: number, termId: string, courseId: string, sectionId: number): Promise<ScheduleEntry[]> {
   const sql = useSql()
   const pair = encodePair(courseId, sectionId)
   const rows = await sql`
@@ -722,7 +722,7 @@ export async function removeSchedulePair(userId: number, termCode: string, cours
       schedule_pairs = array_remove(schedule_pairs, ${pair}),
       section_ids = '{}',
       updated_at = now()
-    WHERE user_id = ${userId} AND term_code = ${termCode}
+    WHERE user_id = ${userId} AND term_code = ${termId}
     RETURNING schedule_pairs
   `
   return rows.length > 0

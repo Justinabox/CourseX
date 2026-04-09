@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 import { computed, ref, triggerRef, watch, onMounted } from 'vue'
 import { useTermId } from '@/composables/useTermId'
 import type { UICourse, UICourseSection, SchedulePair, Schedule } from '@/composables/api/types'
-import { scheduleToBlocks, type ScheduleBlock } from '@/composables/scheduleUtils'
+import { scheduleToBlocks, type ScheduleBlock } from '@/utils/scheduleUtils'
 import { normalizeCourseCode, normalizeSectionId } from '@/utils/normalize'
-import { hydrateScheduledCourses } from '@/composables/scheduleHydration'
+import { hydrateScheduledCourses } from '@/utils/scheduleHydration'
 import { fetchScheduleData, putScheduleEntries, postScheduleEntry, deleteScheduleEntry } from '@/composables/api/queries'
 
 export const useScheduleStore = defineStore('schedule', () => {

@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CourseDetails } from '@/composables/useAPI'
-import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
+import { getCourseTypeMeta } from '@/composables/courseTypeMeta'
 import { formatUnitsOptions, formatPrerequisiteGroup } from '@/composables/api/transforms'
 
 const props = defineProps<{

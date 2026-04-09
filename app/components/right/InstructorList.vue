@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRMPRatings } from '@/composables/useRMPRatings'
-import { resolveInstructorViews, type InstructorView } from '@/composables/useInstructorViews'
+import { resolveInstructorViews, type InstructorView } from '@/composables/instructorViews'
 
 const props = defineProps<{
   instructors: string[]

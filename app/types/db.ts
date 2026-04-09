@@ -75,7 +75,7 @@ export type DbCourse = {
   prerequisites: CourseGroup[]
   corequisites: CourseGroup[]
   displayCode: CourseCode | null
-  isCrossListed: boolean
+  isCrosslisted: boolean
   ges: GECode[]
   restrictions: Restriction[]
 }

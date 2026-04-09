@@ -1,5 +1,5 @@
 import type { UICourseSection } from '@/composables/api/types'
-import { scheduleToBlocks } from '@/composables/scheduleUtils'
+import { scheduleToBlocks } from '@/utils/scheduleUtils'
 
 export function sectionMatchesScheduleFilters(
   section: UICourseSection,

@@ -34,7 +34,7 @@ function onBlockClick(id: string) {
   if (!target) return
   const courseCode = target.courseCode
   if (!courseCode) return
-  const sectionId = target.sectionId || 'section'
+  const sectionId = target.sectionId || null
   const parsed = mode.value
   router.push(makeSelectionPath(parsed, courseCode, sectionId))
 }

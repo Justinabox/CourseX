@@ -135,12 +135,12 @@
 </template>
 
 <script setup lang="ts">
-import { getCourseTypeMeta } from '@/composables/useCourseTypeMeta'
+import { getCourseTypeMeta } from '@/composables/courseTypeMeta'
 import type { UICourseSection, GECode } from '@/composables/useAPI'
 import { useSchedule } from '@/composables/useSchedule'
 import { useScheduleStore } from '@/stores/schedule'
 import { useRMPRatings } from '@/composables/useRMPRatings'
-import { resolveInstructorViews, type InstructorView } from '@/composables/useInstructorViews'
+import { resolveInstructorViews, type InstructorView } from '@/composables/instructorViews'
 import { useWatchlistStore } from '@/stores/watchlist'
 import { formatCardSchedule, formatCardLocation, formatUnitsRange } from '@/composables/api/transforms'
 
